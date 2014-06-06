@@ -53,7 +53,9 @@
 		public function uncacheById($id);
 		public function uncacheByIds($ids);
 		public function uncacheLists();
+        public function uncacheListByQuery(SelectQuery $query);
         public function uncacheByQuery(SelectQuery $query);
+        public function uncacheByLogic(LogicalObject $logic);
         public function uncacheItems();
 		//@}
 	}

@@ -96,6 +96,12 @@
 					delete($this->makeQueryKey($query, $this->getSuffixQuery()));
 		}
 
+        public function uncacheByLogic(LogicalObject $logic) {
+            return $this->uncacheByQuery($this->dao->makeSelectHead()->andWhere($logic));
+        }
+
+        public function uncacheListByQuery(SelectQuery $query) {}
+
         public function uncacheItems() {}
 
         protected function getSuffixQuery() {
