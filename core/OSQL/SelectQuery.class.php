@@ -486,5 +486,12 @@
 		public function getCriteria() {
 			return $this->criteria;
 		}
+
+        /**
+         * @return null|OrderChain
+         */
+        public function getOrder() {
+            return $this->order;
+        }
 	}
 ?>

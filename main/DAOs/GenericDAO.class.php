@@ -155,7 +155,7 @@
 
 		/// boring delegates
 		//@{
-		public function getById($id, $expires = Cache::EXPIRES_MEDIUM)
+		public function getById($id, $expires = Cache::EXPIRES_FOREVER)
 		{
 			Assert::isScalar($id);
 			Assert::isNotEmpty($id);

@@ -134,7 +134,7 @@ class TreeDaoWorker extends CommonDaoWorker {
                 if ($idKey != $queryKey) {
                     Cache::me()
                         ->mark($this->className)
-                        ->add(
+                        ->set(
                             $queryKey,
                             CacheLink::create()
                                 ->setKey($idKey),
@@ -144,7 +144,7 @@ class TreeDaoWorker extends CommonDaoWorker {
 
                 Cache::me()
                     ->mark($this->className)
-                    ->add(
+                    ->set(
                         $idKey,
                         $object,
                         $expires
@@ -163,27 +163,31 @@ class TreeDaoWorker extends CommonDaoWorker {
                 } else {
                     $items = $object;
                 }
-                foreach ($items as $item) {
-                    $idKey = $this->makeIdKey($item->getId());
+                foreach ($items as $i => $item) {
+                    if ($item instanceof Identifiable) {
+                        $idKey = $this->makeIdKey($item->getId());
 
-                    Cache::me()
-                        ->mark($this->className)
-                        ->add(
-                            $idKey,
-                            $item,
-                            $expires
-                        );
+                        Cache::me()
+                            ->mark($this->className)
+                            ->set(
+                                $idKey,
+                                $item,
+                                $expires
+                            );
 
-                    $link->setKey($item->getId(), $idKey);
+                        $link->setKey($item->getId(), $idKey);
+                    } else {
+                        $link->setValue($i, $item);
+                    }
                 }
 
-                if ($query->getLimit() || $query->getOffset()) {
+                if ($this->cacheAsRoot($query)) {
                     /** @var $rootLink CacheListLink */
                     $rootLink = $this->getRootLink($query);
                     $rootLink->setKey($this->getBranchLinkKey($query), $link);
 
                     Cache::me()->mark($this->className)->
-                        add(
+                        set(
                             $rootLink->getId(),
                             $rootLink,
                             $expires
@@ -197,6 +201,10 @@ class TreeDaoWorker extends CommonDaoWorker {
         }
 
         return $object;
+    }
+
+    private function cacheAsRoot(SelectQuery $query) {
+        return $query->getLimit() || $query->getOffset() || $query->getOrder()->getCount();
     }
 
     /**
@@ -225,16 +233,23 @@ class TreeDaoWorker extends CommonDaoWorker {
 
     protected function getClearQuery(SelectQuery $query) {
         $clearQuery = clone $query;
-        $clearQuery->dropLimit();
+        $clearQuery
+            ->dropLimit()
+            ->dropOrder()
+        ;
         return $clearQuery;
     }
 
     private function getBranchLinkKey(SelectQuery $query) {
-        return $query->getLimit() . '_' . $query->getOffset();
+        return implode('_', [
+            $query->getLimit(),
+            $query->getOffset(),
+            md5($query->getOrder()->toDialectString(DBPool::getByDao($this->dao)->getDialect()))
+        ]);
     }
 
     protected function getCachedByQuery(SelectQuery $query) {
-        if ($query->getLimit() || $query->getOffset()) {
+        if ($this->cacheAsRoot($query)) {
             $object = parent::getCachedByQuery($this->getClearQuery($query));
         } else {
             $object = parent::getCachedByQuery($query);
@@ -249,14 +264,20 @@ class TreeDaoWorker extends CommonDaoWorker {
                 if ($subLink) {
                     $object = $subLink;
                     $keys = $subLink->getKeys();
-                    $result = Cache::me()->getList($keys);
+                    if (is_array($keys) && count($keys)) {
+                        $result = Cache::me()->getList($keys);
+                    }
                 }
             } else {
                 $keys = $object->getKeys();
-                $result = Cache::me()->getList($keys);
+                if ($keys) {
+                    $result = Cache::me()->getList($keys);
+                } else {
+                    $result = $object->getValues();
+                }
             }
 
-            if ($result) {
+            if ($result && $keys) {
                 foreach ($keys as $id => $key) {
                     if (!$result[$key]) {
                         try {
@@ -283,6 +304,8 @@ class TreeDaoWorker extends CommonDaoWorker {
                     ;
                 }
             }
+        } else {
+            $result = $object;
         }
 
         return $result;

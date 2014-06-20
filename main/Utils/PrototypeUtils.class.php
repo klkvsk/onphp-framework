@@ -308,4 +308,13 @@ class PrototypeUtils
 		}
 	}
 
+    public static function toPlainList(array $objects, $property) {
+        $arr = array();
+        foreach ($objects as $object) {
+            if ($object instanceof Prototyped && self::hasProperty($object, $property)) {
+                $arr[] = self::getValue($object, $property);
+            }
+        }
+        return $arr;
+    }
 }

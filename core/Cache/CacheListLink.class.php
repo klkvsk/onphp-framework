@@ -10,6 +10,7 @@ class CacheListLink {
 
     private $id;
     private $keys;
+    private $values;
     private $count;
     private $result = false;
     /**
@@ -118,5 +119,30 @@ class CacheListLink {
      */
     public function isResult() {
         return $this->result;
+    }
+
+    /**
+     * @param mixed $values
+     * @return $this
+     */
+    public function setValue($key, $value) {
+        $this->values[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * @param mixed $values
+     * @return $this
+     */
+    public function setValues($values) {
+        $this->values = $values;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getValues() {
+        return $this->values;
     }
 } 

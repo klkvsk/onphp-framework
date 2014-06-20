@@ -37,6 +37,11 @@
 			
 			if (!$list)
 				return $out;
+
+            Assert::isInstance(
+                current($list), 'Identifiable',
+                'only identifiable lists accepted'
+            );
 			
 			foreach ($list as $obj)
 				$out[$obj->getId()] = $obj;
