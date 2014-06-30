@@ -118,6 +118,12 @@ class TreeDaoWorker extends CommonDaoWorker {
         );
     }
 
+    public function uncacheCustomByQuery(SelectQuery $query) {
+        $this->setSuffixCustom();
+        return parent::uncacheByQuery($query);
+    }
+
+
     protected function cacheByQuery(
         SelectQuery $query,
         /* Identifiable */
@@ -279,9 +285,9 @@ class TreeDaoWorker extends CommonDaoWorker {
 
             if ($result && $keys) {
                 foreach ($keys as $id => $key) {
-                    if (!$result[$key]) {
+                    if (empty($result[$key])) {
                         try {
-                            $item = $this->dao->getById($id);
+                            $item = $this->getById($id);
                             $result[$key] = $item;
                             Cache::me()
                                 ->mark($this->className)
@@ -290,9 +296,7 @@ class TreeDaoWorker extends CommonDaoWorker {
                                     $item,
                                     Cache::EXPIRES_MEDIUM
                                 );
-                        } catch (ObjectNotFoundException $e) {
-                            unset($result[$key]);
-                        }
+                        } catch (ObjectNotFoundException $e) {}
                     }
                 }
 

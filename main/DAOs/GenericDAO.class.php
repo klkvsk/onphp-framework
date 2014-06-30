@@ -343,6 +343,10 @@
             return Cache::worker($this)->uncacheByQuery($query);
         }
 
+        public function uncacheCustomByQuery(SelectQuery $query) {
+            return Cache::worker($this)->uncacheCustomByQuery($query);
+        }
+
         public function uncacheByLogic(LogicalObject $logic) {
             try {
                 $item = Cache::worker($this)->getByLogic($logic);

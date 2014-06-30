@@ -55,6 +55,7 @@
 		public function uncacheLists();
         public function uncacheListByQuery(SelectQuery $query);
         public function uncacheByQuery(SelectQuery $query);
+        public function uncacheCustomByQuery(SelectQuery $query);
         public function uncacheByLogic(LogicalObject $logic);
         public function uncacheItems();
 		//@}
