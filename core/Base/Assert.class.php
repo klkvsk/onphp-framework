@@ -14,13 +14,13 @@
 	 *
 	 * @ingroup Base
 	**/
-	final class Assert extends StaticFactory
+	class Assert extends StaticFactory
 	{
 		public static function isTrue($boolean, $message = null)
 		{
 			if ($boolean !== true)
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($boolean)
+					$message.static::dumpArgument($boolean)
 				);
 		}
 
@@ -28,7 +28,7 @@
 		{
 			if ($boolean !== false)
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($boolean)
+					$message.static::dumpArgument($boolean)
 				);
 		}
 
@@ -36,7 +36,7 @@
 		{
 			if ($boolean === false)
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($boolean)
+					$message.static::dumpArgument($boolean)
 				);
 		}
 
@@ -44,7 +44,7 @@
 		{
 			if ($variable !== null)
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($variable)
+					$message.static::dumpArgument($variable)
 				);
 		}
 
@@ -52,7 +52,7 @@
 		{
 			if (!empty($variable))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($variable)
+					$message.static::dumpArgument($variable)
 				);
 		}
 
@@ -60,7 +60,7 @@
 		{
 			if (empty($variable))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($variable)
+					$message.static::dumpArgument($variable)
 				);
 		}
 
@@ -70,7 +70,7 @@
 
 			if (!array_key_exists($key, $array))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($key)
+					$message.static::dumpArgument($key)
 				);
 		}
 
@@ -84,7 +84,7 @@
 		{
 			if (!is_scalar($variable))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($variable)
+					$message.static::dumpArgument($variable)
 				);
 		}
 
@@ -92,44 +92,44 @@
 		{
 			if (!is_array($variable))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($variable)
+					$message.static::dumpArgument($variable)
 				);
 		}
 
 		public static function isNotEmptyArray(&$variable, $message = null)
 		{
-			self::isArray($variable, $message);
+			static::isArray($variable, $message);
 
 			if (!$variable)
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($variable)
+					$message.static::dumpArgument($variable)
 				);
 		}
 
 		public static function isInteger($variable, $message = null)
 		{
-			if (!self::checkInteger($variable))
+			if (!static::checkInteger($variable))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($variable)
+					$message.static::dumpArgument($variable)
 				);
 		}
 
 		public static function isPositiveInteger($variable, $message = null)
 		{
 			if (
-				!self::checkInteger($variable)
+				!static::checkInteger($variable)
 				|| $variable < 0
 			)
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($variable)
+					$message.static::dumpArgument($variable)
 				);
 		}
 
 		public static function isFloat($variable, $message = null)
 		{
-			if (!self::checkFloat($variable))
+			if (!static::checkFloat($variable))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($variable)
+					$message.static::dumpArgument($variable)
 				);
 		}
 
@@ -137,15 +137,15 @@
 		{
 			if (!is_string($variable))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($variable)
+					$message.static::dumpArgument($variable)
 				);
 		}
 
 		public static function isBoolean($variable, $message = null)
 		{
-			if (!self::checkBoolean($variable))
+			if (!static::checkBoolean($variable))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($variable)
+					$message.static::dumpArgument($variable)
 				);
 		}
 
@@ -159,7 +159,7 @@
 				)
 			)
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($variable)
+					$message.static::dumpArgument($variable)
 				);
 		}
 
@@ -167,7 +167,7 @@
 		{
 			if (get_class($first) !== get_class($second))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpOppositeArguments($first, $second)
+					$message.static::dumpOppositeArguments($first, $second)
 				);
 		}
 
@@ -175,7 +175,7 @@
 		{
 			if ($first != $second)
 				throw new WrongArgumentException(
-					$message.', '.self::dumpOppositeArguments($first, $second)
+					$message.static::dumpOppositeArguments($first, $second)
 				);
 		}
 
@@ -183,7 +183,7 @@
 		{
 			if ($first == $second)
 				throw new WrongArgumentException(
-					$message.', '.self::dumpOppositeArguments($first, $second)
+					$message.static::dumpOppositeArguments($first, $second)
 				);
 		}
 
@@ -191,7 +191,7 @@
 		{
 			if ($first !== $second)
 				throw new WrongArgumentException(
-					$message.', '.self::dumpOppositeArguments($first, $second)
+					$message.static::dumpOppositeArguments($first, $second)
 				);
 		}
 
@@ -199,7 +199,7 @@
 		{
 			if ($first === $second)
 				throw new WrongArgumentException(
-					$message.', '.self::dumpOppositeArguments($first, $second)
+					$message.static::dumpOppositeArguments($first, $second)
 				);
 		}
 
@@ -207,7 +207,7 @@
 		{
 			if ($first != $second)
 				throw new WrongArgumentException(
-					$message.', '.self::dumpOppositeArguments($first, $second)
+					$message.static::dumpOppositeArguments($first, $second)
 				);
 		}
 
@@ -215,7 +215,7 @@
 		{
 			if (!($first < $second))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpOppositeArguments($first, $second)
+					$message.static::dumpOppositeArguments($first, $second)
 				);
 		}
 
@@ -223,7 +223,7 @@
 		{
 			if (!($first > $second))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpOppositeArguments($first, $second)
+					$message.static::dumpOppositeArguments($first, $second)
 				);
 		}
 
@@ -231,7 +231,7 @@
 		{
 			if (!($first <= $second))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpOppositeArguments($first, $second)
+					$message.static::dumpOppositeArguments($first, $second)
 				);
 		}
 
@@ -239,7 +239,7 @@
 		{
 			if (!($first >= $second))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpOppositeArguments($first, $second)
+					$message.static::dumpOppositeArguments($first, $second)
 				);
 		}
 
@@ -247,7 +247,7 @@
 		{
 			if (!ClassUtils::isInstanceOf($first, $second))
 				throw new WrongArgumentException(
-					$message.', '.self::dumpOppositeArguments($first, $second)
+					$message.static::dumpOppositeArguments($first, $second)
 				);
 		}
 
@@ -318,22 +318,22 @@
 		public static function isUniversalUniqueIdentifier($variable, $message = null)
 		{
 			if(
-				!self::checkUniversalUniqueIdentifier($variable)
+				!static::checkUniversalUniqueIdentifier($variable)
 			)
 				throw new WrongArgumentException(
-					$message.', '.self::dumpArgument($variable)
+					$message.static::dumpArgument($variable)
 				);
 		}
 
 		public static function dumpArgument($argument)
 		{
-			return 'argument: ['.print_r($argument, true).']';
+			return ', argument: ['.print_r($argument, true).']';
 		}
 
 		public static function dumpOppositeArguments($first, $second)
 		{
 			return
-				'arguments: ['.print_r($first, true).'] '
+				', arguments: ['.print_r($first, true).'] '
 				.'vs. ['.print_r($second, true).'] ';
 		}
 		//@}
