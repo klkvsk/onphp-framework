@@ -101,6 +101,7 @@
         }
 
         public function uncacheListByQuery(SelectQuery $query) {}
+        public function uncacheListByLogic(LogicalObject $logic) {}
         public function uncacheCustomByQuery(SelectQuery $query) {}
 
         public function uncacheItems() {}

@@ -310,11 +310,40 @@ class PrototypeUtils
 
     public static function toPlainList(array $objects, $property) {
         $arr = array();
+
+        if (!$objects)
+            return $arr;
+
+        Assert::isInstance(
+            current($objects), 'Prototyped',
+            'only prototyped lists accepted'
+        );
+
         foreach ($objects as $object) {
-            if ($object instanceof Prototyped && self::hasProperty($object, $property)) {
+            if (self::hasProperty($object, $property)) {
                 $arr[] = self::getValue($object, $property);
             }
         }
         return $arr;
+    }
+
+    public static function convertObjectList(array $objects, $property) {
+        $out = array();
+
+        if (!$objects)
+            return $out;
+
+        Assert::isInstance(
+            current($objects), 'Prototyped',
+            'only prototyped lists accepted'
+        );
+
+        foreach ($objects as $object) {
+            if (self::hasProperty($object, $property)) {
+                $out[self::getValue($object, $property)] = $object;
+            }
+        }
+
+        return $out;
     }
 }

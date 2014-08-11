@@ -361,6 +361,10 @@
             return Cache::worker($this)->uncacheListByQuery($query);
         }
 
+        public function uncacheListByLogic(LogicalObject $logic) {
+            return Cache::worker($this)->uncacheListByLogic($logic);
+        }
+
         public function uncacheItems() {
 
             $this->dropIdentityMap();

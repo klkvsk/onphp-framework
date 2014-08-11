@@ -118,6 +118,12 @@ class TreeDaoWorker extends CommonDaoWorker {
         );
     }
 
+    public function uncacheListByLogic(LogicalObject $logic) {
+        $this->uncacheListByQuery(
+            $this->dao->makeSelectHead()->andWhere($logic)
+        );
+    }
+
     public function uncacheCustomByQuery(SelectQuery $query) {
         $this->setSuffixCustom();
         return parent::uncacheByQuery($query);
