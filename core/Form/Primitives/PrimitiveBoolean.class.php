@@ -16,7 +16,7 @@
 	{
 		public function import($scope)
 		{
-			if (isset($scope[$this->name]))
+			if (isset($scope[$this->name]) && filter_var($scope[$this->name], FILTER_VALIDATE_BOOLEAN))
 				$this->value = true;
 			else
 				$this->value = false;
