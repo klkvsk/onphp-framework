@@ -264,5 +264,20 @@
 
 			return $newList;
 		}
+
+        public static function convertToMap($list, $key) {
+
+            Assert::isArray($list);
+
+            $out = array();
+
+            foreach ($list as $item) {
+                if (isset($item[$key])) {
+                    $out[$item[$key]] = $item;
+                }
+            }
+
+            return $out;
+        }
 	}
 ?>
