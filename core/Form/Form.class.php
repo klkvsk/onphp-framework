@@ -40,10 +40,17 @@ final class Form extends RegulatedForm {
         return array_merge($this->errors, $this->violated);
     }
 
-    public function hasError($name) {
-        return array_key_exists($name, $this->errors)
-        || array_key_exists($name, $this->violated);
-    }
+	public function check() {
+		if ($this->getErrors()) {
+			throw new FormValidationException($this);
+		}
+		return $this;
+	}
+	
+	public function hasError($name) {
+		return array_key_exists($name, $this->errors)
+			|| array_key_exists($name, $this->violated);
+	}
 
     public function getError($name) {
         if (array_key_exists($name, $this->errors)) {
@@ -163,21 +170,21 @@ final class Form extends RegulatedForm {
     }
     //@}
 
-    /**
-     * Returns plain list of error's labels
-     **/
-    public function getTextualErrors($withName = false) {
-        $list = array();
+		/**
+		 * Returns plain list of error's labels
+		**/
+		public function getTextualErrors($withName = false) {
+			$list = array();
 
-        foreach (array_keys($this->labels) as $name) {
-            if ($label = $this->getTextualErrorFor($name)) {
-                if ($withName) {
-                    $list[$name] = $label;
-                } else {
-                    $list[] = $label;
-                }
-            }
-        }
+			foreach (array_keys($this->labels) as $name) {
+				if ($label = $this->getTextualErrorFor($name)) {
+					if ($withName) {
+						$list[$name] = $label;
+					} else {
+						$list[] = $label;
+					}
+				}
+			}
 
         return $list;
     }

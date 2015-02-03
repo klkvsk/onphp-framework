@@ -40,11 +40,12 @@
 
 		const IP				= 0x000010;
 		const IP_RANGE			= 0x000011;
+		const CIDR	    		= 0x000012;
 
 		const UUID				= 0x000005;
 		const HSTORE      		= 0x000020;
 
-		const SET_OF_STRINGS	= 0x010121;
+		const SET_OF_STRINGS	= 0x010021;
 		const SET_OF_INTEGERS	= 0x010022;
 
 		const HAVE_SIZE			= 0x000100;
@@ -90,6 +91,7 @@
 
 			self::IP			=> 'IP',
 			self::IP_RANGE		=> 'IP_RANGE',
+			self::CIDR		    => 'CIDR',
 
 			self::SET_OF_STRINGS	=> 'CHARACTER VARYING',
 			self::SET_OF_INTEGERS	=> 'INTEGER',
