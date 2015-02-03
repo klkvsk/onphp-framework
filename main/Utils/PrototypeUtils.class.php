@@ -308,7 +308,7 @@ class PrototypeUtils
 		}
 	}
 
-    public static function toPlainList(array $objects, $property) {
+    public static function toPlainList($objects, $property = 'id') {
         $arr = array();
 
         if (!$objects)
@@ -327,7 +327,7 @@ class PrototypeUtils
         return $arr;
     }
 
-    public static function convertObjectList(array $objects, $property) {
+    public static function convertObjectList($objects, $property = 'id') {
         $out = array();
 
         if (!$objects)

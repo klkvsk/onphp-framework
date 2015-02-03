@@ -70,6 +70,9 @@
 		public static function &convertToPlainList($list, $key)
 		{
 			$out = array();
+
+			if (!$list)
+				return $out;
 			
 			foreach ($list as $obj)
 				$out[] = $obj[$key];
@@ -266,10 +269,11 @@
 		}
 
         public static function convertToMap($list, $key) {
-
-            Assert::isArray($list);
-
             $out = array();
+
+			if (!$list) {
+				return $out;
+			}
 
             foreach ($list as $item) {
                 if (isset($item[$key])) {
