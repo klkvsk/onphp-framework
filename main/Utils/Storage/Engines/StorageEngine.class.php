@@ -32,6 +32,8 @@ class StorageEngine
     protected $retries = 1;
     protected $timeout = 1000000; // 1 sec
 
+	protected $httpTimeout = 0; // seconds
+
 	// folder sharding
 	protected $folderShardingDepth = 0;
 	protected $folderShardingNameBucketSize = 2;
@@ -64,6 +66,10 @@ class StorageEngine
 
         if ( isset($config['timeout']) ) {
             $this->timeout = $config['timeout'];
+        }
+
+        if ( isset($config['httpTimeout']) ) {
+            $this->httpTimeout = $config['httpTimeout'];
         }
     }
 
@@ -112,7 +118,8 @@ class StorageEngine
 			if ( $delta > 0 ) {
 				$key = str_pad($fileName, $this->folderShardingNameBucketSize, $this->folderShardingEmptyKey);
 				$fileName = '';
-			}else{
+			}
+			else{
 				$key = mb_substr($fileName, 0, $this->folderShardingNameBucketSize);
 				$fileName = mb_substr($fileName, $this->folderShardingNameBucketSize);
 			}
@@ -127,15 +134,37 @@ class StorageEngine
     }
 
     public function storeRemote($link, $desiredName=null) {
-
         if (!$desiredName) {
             $desiredName = $this->generateName('');
         }
 
+		$httpTimeout = '';
 		try {
-			$source = fopen($link, 'r');
-		} catch(Exception $e) {
-			throw new FileNotFoundException($e->getMessage(), $e->getCode(), $e);
+			if ( $this->httpTimeout && strpos($link, 'http') === 0 ) {
+				$httpTimeout = floatval($this->httpTimeout);
+				$context = stream_context_create( array(
+					'http' => array (
+						'timeout' => $httpTimeout
+					)
+				));
+
+				$source = fopen($link, 'r', false, $context);
+			}
+			else {
+				$source = fopen($link, 'r');
+			}
+
+			if ( !$source ) {
+				throw new Exception('fopen failed' . $link);
+			}
+		}
+		catch(Exception $e) {
+			throw
+				new FileNotFoundException(
+					$e->getMessage() . ($httpTimeout ? ' (httpTimeout: ' . $httpTimeout . ' sec)' : ''),
+					$e->getCode(),
+					$e
+				);
 		}
 
         $path   = $this->getTmpFile($desiredName);
@@ -288,7 +317,8 @@ class StorageEngine
                     ->setRetries($this->retries);
 
                 $result = $reTryer->exec();
-            } else {
+            }
+			else {
                 $result = $action();
             }
 
