@@ -44,6 +44,7 @@
 
 		const UUID				= 0x000005;
 		const HSTORE      		= 0x000020;
+		const JSON      		= 0x000021;
 
 		const SET_OF_STRINGS	= 0x010021;
 		const SET_OF_INTEGERS	= 0x010022;
@@ -77,6 +78,7 @@
 
 			self::UUID			=> 'UUID',
 			self::HSTORE		=> 'HSTORE',
+			self::JSON		    => 'JSON',
 
 			self::CHAR			=> 'CHARACTER',
 			self::VARCHAR		=> 'CHARACTER VARYING',

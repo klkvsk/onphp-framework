@@ -247,6 +247,7 @@
 
 				'uuid'			=> DataType::UUID,
 				'hstore'    	=> DataType::HSTORE,
+				'json'    	    => DataType::JSON,
 
 				'_varchar'    	=> DataType::SET_OF_STRINGS,
 				'_int4'    		=> DataType::SET_OF_INTEGERS,

@@ -497,5 +497,13 @@
 		{
 			return new PrimitiveRegistryList($name);
 		}
+
+        /**
+         * @return PrimitiveJson
+         **/
+        public static function json($name)
+        {
+            return new PrimitiveJson($name);
+        }
 	}
 ?>
