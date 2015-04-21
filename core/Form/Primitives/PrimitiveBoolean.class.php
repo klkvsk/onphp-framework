@@ -17,13 +17,11 @@
 		public function import($scope)
 		{
             if (isset($scope[$this->name])) {
-                $this->imported = true;
                 $this->value = filter_var($scope[$this->name], FILTER_VALIDATE_BOOLEAN);
             } else {
-                $this->imported = true;
                 $this->value = false;
             }
-			return $this->imported;
+			return $this->imported = true;
 		}
 		
 		public function importValue($value)
