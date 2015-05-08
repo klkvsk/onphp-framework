@@ -60,13 +60,14 @@
 		{
 			if ($value === null)
 				return parent::importValue(null);
-			
+
+            $value = json_decode($value);
 			Assert::isTrue(is_object($value) || is_array($value), 'importValue');
 				
 			if (!$this->value instanceof Form)
 				$this->value = $this->makeForm();
 			
-			$this->value->import($value->getList());
+			$this->value->import($value);
 			$this->imported = true;
 			
 			return
@@ -103,7 +104,7 @@
 			if (!$this->value instanceof Form)
 				return null;
 			
-			return json_decode($this->value->export());
+			return $this->value->export();
 		}
 		
 		/**
