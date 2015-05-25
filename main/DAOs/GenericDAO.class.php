@@ -429,7 +429,7 @@
 
 				$this->uncacheById($object->getId());
 
-				if ($count !== 1)
+				if ($count !== 1 && $this->skipInjectStateException())
 					throw new WrongStateException(
 						$count.' rows affected: racy or insane inject happened: '
 						.$query->toDialectString($db->getDialect())
@@ -447,6 +447,10 @@
 
             return $result;
 		}
+
+        protected function skipInjectStateException() {
+            return true;
+        }
 
 		/* void */ protected function checkObjectType(Identifiable $object)
 		{
