@@ -134,6 +134,7 @@ class StorageEngine
     }
 
     public function storeRemote($link, $desiredName=null) {
+
         if (!$desiredName) {
             $desiredName = $this->generateName('');
         }
@@ -144,7 +145,8 @@ class StorageEngine
 				$httpTimeout = floatval($this->httpTimeout);
 				$context = stream_context_create( array(
 					'http' => array (
-						'timeout' => $httpTimeout
+						'timeout'		=> $httpTimeout,
+						'user_agent'	=> 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0',
 					)
 				));
 
@@ -317,8 +319,7 @@ class StorageEngine
                     ->setRetries($this->retries);
 
                 $result = $reTryer->exec();
-            }
-			else {
+            } else {
                 $result = $action();
             }
 
