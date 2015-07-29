@@ -44,14 +44,9 @@
 			return $this;
 		}
 
-		public function jsonb() {
-			$this->type = DataType::JSONB;
-			return $this;
-		}
-
 		public function toDialectString(Dialect $dialect)
 		{
-			if ($this->type == DataType::JSON || $this->type == DataType::JSONB) {
+			if ($this->type == DataType::JSON) {
 				return $dialect->quoteJson($this->getValue(), $this->type);
 			} else {
 				return $dialect->quoteArray($this->getValue(), $this->type);

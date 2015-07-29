@@ -19,7 +19,7 @@ class StorageEngineStreamable extends StorageEngine
 
     protected $resolveNameConflicts = true;
     
-    protected function getPath($file, $createPath = false) {
+    public function getPath($file, $createPath = false) {
 		if ( substr($this->dsn, strlen($this->dsn)-1, 1) != self::DS ) {
 			$this->dsn .= self::DS;
 		}

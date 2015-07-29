@@ -403,8 +403,6 @@
 					$query->set($this->columnName, DBArray::create($value)->strings());
 				} elseif($this->type == 'json' ) {
 					$query->set($this->columnName, DBArray::create($value)->json());
-				} elseif($this->type == 'jsonb' ) {
-					$query->set($this->columnName, DBArray::create($value)->jsonb());
 				} else {
 					$query->lazySet($this->columnName, $value);
 				}

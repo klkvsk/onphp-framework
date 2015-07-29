@@ -123,7 +123,7 @@
 		{
 			if (headers_sent())
 				throw new WrongStateException('headers already send');
-			
+
 			return
 				setcookie(
 					$this->getName(),

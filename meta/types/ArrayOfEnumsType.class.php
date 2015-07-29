@@ -5,20 +5,20 @@
  * @date 14.01.2015
  */
 
-class ArrayOfEnumerationsType extends ArrayOfIntegersType {
+class ArrayOfEnumsType extends ArrayOfIntegersType {
 
 	/** @var MetaClass */
-	protected $enumerationClass;
+	protected $enumClass;
 
 	function __construct($type, array $parameters) {
-		Assert::isNotEmptyArray($parameters, 'enumeration class name is not provided');
+		Assert::isNotEmptyArray($parameters, 'enum class name is not provided');
 		list($enumerationClassName) = $parameters;
 
-		$this->enumerationClass = MetaConfiguration::me()->getClassByName($enumerationClassName);
+		$this->enumClass = MetaConfiguration::me()->getClassByName($enumerationClassName);
 
 		Assert::isTrue(
-			$this->enumerationClass->getPattern() instanceof EnumerationClassPattern,
-			'only enumeration classes can be provided for ArrayOfEnumerations type'
+			$this->enumClass->getPattern() instanceof EnumClassPattern,
+			'only enum classes can be provided for ArrayOfEnums type'
 		);
 	}
 
@@ -38,11 +38,11 @@ class ArrayOfEnumerationsType extends ArrayOfIntegersType {
 		return parent::toGetter($class, $property, $holder) . <<<EOT
 
 /**
- * @return {$this->enumerationClass->getName()}[]
+ * @return {$this->enumClass->getName()}[]
 **/
 public function {$methodName}()
 {
-	return array_map(array('{$this->enumerationClass->getName()}', 'create'), \$this->{$name});
+	return array_map(array('{$this->enumClass->getName()}', 'create'), \$this->{$name});
 }
 
 EOT;
@@ -65,7 +65,7 @@ EOT;
 			return parent::toSetter($class, $property, $holder) . <<<EOT
 
 /**
- * @param \${$name} {$this->enumerationClass->getName()}[]
+ * @param \${$name} {$this->enumClass->getName()}[]
  * @return {$class->getName()}
 **/
 public function {$methodName}(array \${$name}{$default})
