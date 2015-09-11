@@ -958,12 +958,6 @@
 							instanceof ValueObjectPattern
 				) {
 					Assert::isTrue(
-						$property->isRequired(),
-						'optional value object is not supported:'
-						.$property->getName().' @ '.$class->getName()
-					);
-
-					Assert::isTrue(
 						$property->getRelationId() == MetaRelation::ONE_TO_ONE,
 						'value objects must have OneToOne relation: '
 						.$property->getName().' @ '.$class->getName()

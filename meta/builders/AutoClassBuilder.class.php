@@ -64,8 +64,8 @@
 				if (
 					$property->getType() instanceof ObjectType
 					&& !$property->getType()->isGeneric()
-					&& $property->getType()->getClass()->getPattern()
-						instanceof ValueObjectPattern
+					&& $property->getType()->getClass()->getPattern() instanceof ValueObjectPattern
+                    && $property->isRequired()
 				) {
 					$valueObjects[$property->getName()] =
 						$property->getType()->getClassName();
