@@ -1,6 +1,6 @@
 <?php
 /***************************************************************************
- *   Copyright (C) 2009 by Sergey S. Sergeev                               *
+ *   Copyright (C) 2015 Anton Gurov                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -9,81 +9,21 @@
  *                                                                         *
  ***************************************************************************/
 
-	/**
-	 * @ingroup Types
-	 * @see http://www.postgresql.org/docs/8.3/interactive/json.html
-	**/
-	class JsonType extends StringType
-	{
-		public function getPrimitiveName()
-		{
-			return 'json';
-		}
-
-		public function toColumnType()
-		{
-			return 'DataType::create(DataType::JSON)';
-		}
-
-        public function toGetter(
-            MetaClass $class,
-            MetaClassProperty $property,
-            MetaClassProperty $holder = null
-        )
-        {
-            if ($holder)
-                $name = $holder->getName().'->get'.ucfirst($property->getName()).'()';
-            else
-                $name = $property->getName();
-
-            $methodName = 'get'.ucfirst($property->getName());
-            $decodedMethodName = 'getDecode'.ucfirst($property->getName());
-
-            return <<<EOT
-
-public function {$methodName}()
-{
-	return \$this->{$name};
-}
-
-public function {$decodedMethodName}()
-{
-	return json_decode(\$this->{$methodName}());
-}
-
-EOT;
-        }
-
-        public function toSetter(
-            MetaClass $class,
-            MetaClassProperty $property,
-            MetaClassProperty $holder = null
-        )
-        {
-            $name = $property->getName();
-            $methodName = 'set'.ucfirst($name);
-            $encodeMethodName = 'setEncode'.ucfirst($name);
-
-            return <<<EOT
-
 /**
- * @return {$class->getName()}
-**/
-public function {$methodName}(\${$name})
+ * @ingroup Types
+ * @see http://www.postgresql.org/docs/9.4/static/datatype-json.html
+ **/
+class JsonType extends ArrayType
 {
-	\$this->{$name} = \${$name};
+    public function getPrimitiveName()
+    {
+        return 'json';
+    }
 
-	return \$this;
+    public function toColumnType()
+    {
+        return 'DataType::create(DataType::JSON)';
+    }
+
 }
-
-/**
- * @return {$class->getName()}
-**/
-public function {$encodeMethodName}(\${$name})
-{
-	return \$this->{$methodName}(json_encode(\${$name}));
-}
-
-EOT;
-        }
-	}
+?>
