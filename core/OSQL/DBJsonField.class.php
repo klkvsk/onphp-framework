@@ -43,7 +43,7 @@ class DBJsonField extends DBField {
             .$dialect->quoteField($this->getField());
 
         if ($this->key) {
-            $field .= '->\'' . $this->key . '\'';
+            $field .= '::json->\'' . $this->key . '\'';
         }
 
 		$field = '(' . $field . ')';
