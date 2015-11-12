@@ -68,7 +68,7 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
     }
 
     /**
-     * @param $file String
+     * @param $url string
      * @return static
      **/
     public static function createFromUrl($url) {
