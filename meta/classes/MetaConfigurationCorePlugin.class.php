@@ -1260,6 +1260,10 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
                             $property->buildReference();
                         }
 
+                        if ($helperTable = (string)$xmlProperty['helperTable']) {
+                            $property->setHelperTable($helperTable);
+                        }
+
                     }
                 }
 

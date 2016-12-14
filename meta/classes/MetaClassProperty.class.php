@@ -31,6 +31,7 @@
 		private $strategy	= null;
 
 		private $reference	= false;
+		private $helperTable = null;
 
 		public function __construct(
 			$name,
@@ -219,6 +220,27 @@
 			$this->relation = $relation;
 
 			return $this;
+		}
+
+        public function setHelperTable($helperTable)
+        {
+            Assert::isEqual(
+                $this->getRelationId(), /* == */ MetaRelation::MANY_TO_MANY,
+                'helperTable is only used for ManyToMany relations'
+            );
+
+            $this->helperTable = $helperTable;
+            return $this;
+		}
+
+        public function getHelperTable()
+        {
+            Assert::isEqual(
+                $this->getRelationId(), /* == */ MetaRelation::MANY_TO_MANY,
+                'helperTable is only used for ManyToMany relations'
+            );
+
+            return $this->helperTable;
 		}
 
 		/**

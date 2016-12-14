@@ -63,10 +63,14 @@ public static function create({$className} \${$propertyName}, \$lazy = false)
 EOT;
 
 			if ($holder->getRelation()->getId() == MetaRelation::MANY_TO_MANY) {
-				$helper_table_name = $class->getTableName().'_'.$remoteColumnName;
-				if( strcmp($class->getTableName(), $remoteColumnName)>=0 ) {
-					$helper_table_name = $remoteColumnName.'_'.$class->getTableName();
-				}
+                $helper_table_name = $holder->getHelperTable();
+                if (!$helper_table_name) {
+                    $helper_table_name =
+                        strcmp($class->getTableName(), $remoteColumnName) >=0
+                            ? $remoteColumnName . '_' . $class->getTableName()
+                            : $class->getTableName() . '_' . $remoteColumnName;
+                }
+
 					$out .= <<<EOT
 
 public function getHelperTable()

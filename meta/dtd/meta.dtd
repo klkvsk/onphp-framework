@@ -39,6 +39,7 @@
 		relation	(OneToOne|OneToMany|ManyToMany) #IMPLIED
 		fetch		(lazy|cascade) #IMPLIED
 		reference	(true|false) #IMPLIED
+		helperTable CDATA #IMPLIED
 >
 
 <!ELEMENT pattern EMPTY>

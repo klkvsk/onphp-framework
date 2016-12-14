@@ -75,17 +75,21 @@ EOT;
 					} elseif (
 						$relation->getId() == MetaRelation::MANY_TO_MANY
 					) {
-						if( strcmp($class->getTableName(), $foreignClass->getTableName())>=0 ) {
-							$tableName =
-								$foreignClass->getTableName()
-								.'_'
-								.$class->getTableName();
-						} else {
-							$tableName =
-								$class->getTableName()
-								.'_'
-								.$foreignClass->getTableName();
-						}
+                        $tableName = $property->getHelperTable();
+
+                        if (!$tableName) {
+                            if( strcmp($class->getTableName(), $foreignClass->getTableName())>=0 ) {
+                                $tableName =
+                                    $foreignClass->getTableName()
+                                    .'_'
+                                    .$class->getTableName();
+                            } else {
+                                $tableName =
+                                    $class->getTableName()
+                                    .'_'
+                                    .$foreignClass->getTableName();
+                            }
+                        }
 
 						if (isset($knownJunctions[$tableName]) || isset(self::$knownTables[$tableName]))
 							continue; // collision prevention
