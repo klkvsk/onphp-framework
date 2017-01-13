@@ -689,6 +689,13 @@
 								)
 							);
 
+                        if ($propertyDao instanceof FilteredDAO) {
+                            $filterLogic = $propertyDao->getFilterLogic();
+                            if ($filterLogic) {
+                                $logic = Expression::andBlock($logic, $filterLogic);
+                            }
+                        }
+
 						if ($property->isRequired() && $parentRequired)
 							$query->join($propertyDao->getTable(), $logic, $tableAlias);
 						else
