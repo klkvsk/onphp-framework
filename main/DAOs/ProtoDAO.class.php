@@ -403,5 +403,42 @@
 			
 			return new DBValue($atom);
 		}
+
+		/**
+		 * @param SelectQuery $query
+		 * @return $this
+		 */
+		protected function filterSelectQuery(SelectQuery $query) {
+			if ($this instanceof FilteredDAO) {
+				$logic = $this->getFilterLogic();
+				if ($logic instanceof MappableObject) {
+					$logic = $logic->toMapped($this, $query);
+				}
+			} else {
+				$logic = null;
+			}
+
+			if ($logic instanceof LogicalObject) {
+				$query->andWhere($logic);
+			}
+
+			return $this;
+		}
+
+		public function makeSelectHead() {
+			$selectQuery = parent::makeSelectHead();
+			if ($this instanceof FilteredDAO) {
+				$this->filterSelectQuery($selectQuery);
+			}
+			return $selectQuery;
+		}
+
+		public function makeTotalCountQuery() {
+			$selectQuery = parent::makeTotalCountQuery();
+			if ($this instanceof FilteredDAO) {
+				$this->filterSelectQuery($selectQuery);
+			}
+			return $selectQuery;
+		}
 	}
 ?>
