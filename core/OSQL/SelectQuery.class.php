@@ -300,7 +300,7 @@
 				$this->resolveSelectField(
 					$field,
 					$alias,
-					$this->getLastTable()
+					$this->getFirstTable()
 				);
 			
 			if ($alias = $this->resolveAliasByField($field, $alias)) {
