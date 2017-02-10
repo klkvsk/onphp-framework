@@ -172,12 +172,14 @@
 		
 		protected function makeIdKey($id)
 		{
+            /*
             if ($this->dao instanceof FilteredDAO) {
                 $filterLogic = $this->dao->getFilterLogic();
                 if ($filterLogic) {
                     $id .= '_' . sha1($filterLogic->toDialectString(ImaginaryDialect::me()));
                 }
             }
+            */
 			return $this->className.'_'.$id.$this->watermark;
 		}
 		
