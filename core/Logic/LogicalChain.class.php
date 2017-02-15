@@ -61,8 +61,9 @@
 			return $this->exp($exp, BinaryExpression::EXPRESSION_OR);
 		}
 		
-		public function toBoolean(Form $form)
+		public function toBoolean(LogicalOperandProvider $operandProvider)
 		{
+            /** @var LogicalObject[] $chain */
 			$chain = &$this->chain;
 			
 			$size = count($chain);
@@ -72,22 +73,52 @@
 					'empty chain can not be calculated'
 				);
 			elseif ($size == 1)
-				return $chain[0]->toBoolean($form);
+				return $chain[0]->toBoolean($operandProvider);
 			else { // size > 1
-				$out = $chain[0]->toBoolean($form);
+				$out = $chain[0]->toBoolean($operandProvider);
 				
 				for ($i = 1; $i < $size; ++$i) {
 					$out =
 						self::calculateBoolean(
 							$this->logic[$i],
 							$out,
-							$chain[$i]->toBoolean($form)
+							$chain[$i]->toBoolean($operandProvider)
 						);
 				}
 				
 				return $out;
 			}
 			
+			Assert::isUnreachable();
+		}
+
+		public function toBooleanByProto(Prototyped $object)
+		{
+			$chain = &$this->chain;
+
+			$size = count($chain);
+
+			if (!$size)
+				throw new WrongArgumentException(
+					'empty chain can not be calculated'
+				);
+			elseif ($size == 1)
+				return $chain[0]->toBooleanByProto($object);
+			else { // size > 1
+				$out = $chain[0]->toBooleanByProto($object);
+
+				for ($i = 1; $i < $size; ++$i) {
+					$out =
+						self::calculateBoolean(
+							$this->logic[$i],
+							$out,
+							$chain[$i]->toBooleanByProto($object)
+						);
+				}
+
+				return $out;
+			}
+
 			Assert::isUnreachable();
 		}
 		

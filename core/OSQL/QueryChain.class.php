@@ -14,7 +14,7 @@
 	**/
 	final class QueryChain extends SQLChain
 	{
-		public function toBoolean(Form $form)
+		public function toBoolean(LogicalOperandProvider $operandProvider)
 		{
 			throw new UnsupportedMethodException('get rid of useless interface');
 		}

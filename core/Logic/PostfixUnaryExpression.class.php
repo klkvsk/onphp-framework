@@ -49,9 +49,9 @@
 			);
 		}
 		
-		public function toBoolean(Form $form)
+		public function toBoolean(LogicalOperandProvider $operandProvider)
 		{
-			$subject = $form->toFormValue($this->subject);
+			$subject = $operandProvider->toOperand($this->subject);
 				
 			switch ($this->logic) {
 				case self::IS_NULL:

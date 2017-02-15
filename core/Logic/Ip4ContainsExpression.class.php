@@ -36,7 +36,7 @@
 			);
 		}
 		
-		public function toBoolean(Form $form)
+		public function toBoolean(LogicalOperandProvider $operandProvider)
 		{
 			throw new UnimplementedFeatureException('Author was too lazy to make it');
 		}

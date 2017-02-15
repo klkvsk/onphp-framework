@@ -16,6 +16,6 @@
 	**/
 	interface LogicalObject extends DialectString
 	{
-		public function toBoolean(Form $form);
+		public function toBoolean(LogicalOperandProvider $operandProvider);
 	}
 ?>

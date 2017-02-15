@@ -40,12 +40,12 @@
 		}
 
 		/**
-		 * @param Form $form
+		 * @param LogicalOperandProvider $operandProvider
 		 * @return bool
 		 */
-		public function toBoolean(Form $form)
+		public function toBoolean(LogicalOperandProvider $operandProvider)
 		{
-			return (bool)$this->callback->__invoke($form);
+			return (bool)$this->callback->__invoke($operandProvider);
 		}
 
 		/**

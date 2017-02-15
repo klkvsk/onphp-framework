@@ -17,7 +17,7 @@
 	 *
 	 * @see http://onphp.org/examples.Form.en.html
 	**/
-	final class Form extends RegulatedForm
+	final class Form extends RegulatedForm implements LogicalOperandProvider
 	{
 		const WRONG			= 0x0001;
 		const MISSING		= 0x0002;
@@ -377,6 +377,11 @@
 				return $value->toBoolean($this);
 			else
 				return $value;
+		}
+
+        public function toOperand($value)
+        {
+            return $this->toOperand($value);
 		}
 
 		/**

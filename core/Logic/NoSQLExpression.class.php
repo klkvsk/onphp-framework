@@ -349,7 +349,7 @@ final class NoSQLExpression implements LogicalObject, MappableObject {
 		throw new UnsupportedMethodException('NoSQLExpression does not support method "toDialectStringg"');
 	}
 
-	public function toBoolean(Form $form) {
+	public function toBoolean(LogicalOperandProvider $operandProvider) {
 		throw new UnsupportedMethodException('NoSQLExpression does not support method "toBoolean"');
 	}
 

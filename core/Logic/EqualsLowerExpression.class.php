@@ -49,10 +49,10 @@
 			);
 		}
 		
-		public function toBoolean(Form $form)
+		public function toBoolean(LogicalOperandProvider $operandProvider)
 		{
-			$left	= $form->toFormValue($this->left);
-			$right	= $form->toFormValue($this->right);
+			$left	= $operandProvider->toOperand($this->left);
+			$right	= $operandProvider->toOperand($this->right);
 			
 			$both =
 				(null !== $left)

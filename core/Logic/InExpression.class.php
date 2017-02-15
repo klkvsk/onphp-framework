@@ -94,9 +94,9 @@
 			return $string;
 		}
 		
-		public function toBoolean(Form $form)
+		public function toBoolean(LogicalOperandProvider $operandProvider)
 		{
-			$left	= $form->toFormValue($this->left);
+			$left	= $operandProvider->toOperand($this->left);
 			$right	= $this->right;
 			
 			$both =

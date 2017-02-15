@@ -107,17 +107,46 @@
 		//@{
 		public function getCachedById($id)
 		{
-			return
+			return $this->checkCachedResult(
 				Cache::me()->mark($this->className)->
-					get($this->makeIdKey($id));
+					get($this->makeIdKey($id))
+            );
 		}
 		
 		protected function getCachedByQuery(SelectQuery $query)
 		{
-			return
+            return $this->checkCachedResult(
 				Cache::me()->mark($this->className)->
-					get($this->makeQueryKey($query, $this->getSuffixQuery()));
+					get($this->makeQueryKey($query, $this->getSuffixQuery()))
+            );
 		}
+
+		protected function checkCachedResult($result) {
+            if ($result instanceof Prototyped && $result instanceof DAOConnected) {
+                $dao = $result::dao();
+                if ($dao instanceof FilteredDAO) {
+                    $filter = $dao->getFilterLogic();
+                    if ($filter instanceof LogicalObject) {
+                        $operandProvider = new PrototypedOperandProvider($result);
+                        if ($filter->toBoolean($operandProvider)) {
+                            return $result;
+                        } else {
+                            return null;
+                        }
+                    }
+                }
+            }
+
+            if (is_array($result)) {
+                foreach ($result as $key => $item) {
+                    if (is_object($item) && !$this->checkCachedResult($item)) {
+                        unset($result[$key]);
+                    }
+                }
+            }
+
+            return $result;
+        }
 		//@}
 		
 		/// fetchers

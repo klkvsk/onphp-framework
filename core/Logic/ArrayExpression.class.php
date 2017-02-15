@@ -152,9 +152,9 @@ class ArrayExpression implements LogicalObject, MappableObject {
 		);
 	}
 
-	public function toBoolean(Form $form) {
-        $left	= $form->toFormValue($this->field);
-        $right	= $form->toFormValue($this->subject);
+	public function toBoolean(LogicalOperandProvider $operandProvider) {
+        $left	= $operandProvider->toOperand($this->field);
+        $right	= $operandProvider->toOperand($this->subject);
 
         $both =
             (null !== $left)

@@ -46,7 +46,7 @@
 			);
 		}
 		
-		public function toBoolean(Form $form)
+		public function toBoolean(LogicalOperandProvider $operandProvider)
 		{
 			throw new UnsupportedMethodException();
 		}
