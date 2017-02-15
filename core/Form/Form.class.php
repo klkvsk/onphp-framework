@@ -381,7 +381,7 @@
 
         public function toOperand($value)
         {
-            return $this->toOperand($value);
+            return $this->toFormValue($value);
 		}
 
 		/**
