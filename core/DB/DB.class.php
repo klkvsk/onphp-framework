@@ -36,7 +36,8 @@
 		**/
 		private $transaction	= false;
 		private $afterCommit 	= array();
-		
+		private $afterRollback 	= array();
+
 		private $queue			= array();
 		private $toQueue		= false;
 		
@@ -174,6 +175,8 @@
 				$this->afterCommit = array();
 			}
 
+			$this->onAfterRollback();
+
 			return $this;
 		}
 		
@@ -197,6 +200,22 @@
 				}
 			}
 			$this->afterCommit = array();
+		}
+
+		public function runOnRollback($callback) {
+		    if ($this->inTransaction()) {
+                $this->afterRollback[] = $callback;
+            }
+			return $this;
+		}
+
+		private function onAfterRollback() {
+			foreach ($this->afterRollback as $callback) {
+				if (is_callable($callback)) {
+					call_user_func($callback);
+				}
+			}
+			$this->afterRollback = array();
 		}
 		//@}
 		
