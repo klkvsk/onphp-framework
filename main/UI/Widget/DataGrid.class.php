@@ -531,7 +531,9 @@ class DataGrid extends BaseWidget
 
             case 'hstore': {
 				return function ($value) {
-					if( $value instanceof Hstore || $value instanceof Enum ) {
+                    if( $value instanceof Hstore ) {
+                        return $value->toString();
+                    } else if( $value instanceof Enum ) {
 						return $value->getName();
 					} else if (is_string($value)) {
                         return $value;
