@@ -251,6 +251,7 @@ class PrototypeUtils
 	 * @param array $ignore properties to ignore
 	 * @return bool
 	 * @throws WrongArgumentException
+     * @see PrototypedObjectCheckpoint для проверки состояния "до"/"после" одного и того же объекта
 	 */
 	public static function same(Prototyped $a, Prototyped $b, $ignore = array('id')) {
 		// проверим что прото совпадают
