@@ -371,6 +371,15 @@
 			return new PrimitiveHttpUrl($name);
 		}
 
+        /**
+         * @param $name
+         * @return PrimitivePrototypedObject
+         */
+        public static function prototypedObject($name)
+        {
+            return new PrimitivePrototypedObject($name);
+		}
+
 		/**
 		 * @return BasePrimitive
 		**/

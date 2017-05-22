@@ -196,10 +196,11 @@ class PrototypeUtils
 	 * @param Prototyped $object
 	 * @return array
 	 */
-	public static function toArray(Prototyped $object) {
+	public static function toArray(Prototyped $object, $useColumnNames = true) {
 		$entity = array();
 		/** @var $property LightMetaProperty */
 		foreach ($object->proto()->getPropertyList() as $property) {
+		    $key = $useColumnNames ? $property->getColumnName() : $property->getName();
 			// обрабатываем базовые типы
 			if( $property->isGenericType() ) {
 				$value = call_user_func(array($object, $property->getGetter()));
@@ -208,9 +209,9 @@ class PrototypeUtils
 						//$value = $value->toString();
 				}
 				if( $property->getType() == 'integer' ) {
-					$entity[ $property->getColumnName() ] = ($value === null) ? null : (int)$value;
+					$entity[ $key ] = ($value === null) ? null : (int)$value;
 				} elseif( $property->getType() == 'float' ) {
-					$entity[ $property->getColumnName() ] = ($value === null) ? null : (float)$value;
+					$entity[ $key ] = ($value === null) ? null : (float)$value;
 				} elseif( $property->getType() == 'string' ) {
 					$value = (string)$value;
 					if ($property->getMax() > 0) {
@@ -220,26 +221,26 @@ class PrototypeUtils
 						// если false или "", то null
 						$value = null;
 					}
-					$entity[ $property->getColumnName() ] = $value;
+					$entity[ $key ] = $value;
 				} elseif ($property->getType() == 'hstore') {
 					/** @var $value Hstore|null */
-					$entity[ $property->getColumnName() ] = $value instanceof Hstore ? $value->getList() : null;
+					$entity[ $key ] = $value instanceof Hstore ? $value->getList() : null;
 				} else {
-					$entity[ $property->getColumnName() ] = $value;
+					$entity[ $key ] = $value;
 				}
 			} // обрабатываем перечисления
 			elseif (in_array($property->getType(), array('enumeration', 'enum', 'registry'))) {
 				/** @var Identifiable|null $value */
 				$value = call_user_func(array($object, $property->getGetter()));
-				$entity[ $property->getColumnName() ] = $value instanceof Identifiable ? $value->getId() : null;
+				$entity[ $key ] = $value instanceof Identifiable ? $value->getId() : null;
 			} // обрабатываем связи 1к1
 			elseif($property->isInner()) {
 				$value = call_user_func(array($object, $property->getGetter()));
-				$entity[ $property->getColumnName() ] = $value instanceof Prototyped ? self::toArray($value) : null;
+				$entity[ $key ] = $value instanceof Prototyped ? self::toArray($value, $useColumnNames) : null;
 			}
 			elseif( in_array($property->getType(), self::$identifiers) && $property->getRelationId()==1 ) {
 				$value = call_user_func(array($object, $property->getGetter().'Id'));
-				$entity[ $property->getColumnName() ] = is_numeric($value) ? (int)$value : $value;
+				$entity[ $key ] = is_numeric($value) ? (int)$value : $value;
 			}
 		}
 		return $entity;
