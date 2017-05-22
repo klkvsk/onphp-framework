@@ -343,6 +343,17 @@
 				BinaryExpression::EXPRESSION_AND
 			);
 		}
+
+        /**
+         * @return LogicalChain
+         */
+        public static function xorBlock($a, $b)
+        {
+            return self::orBlock(
+                self::andBlock($a, self::not($b)),
+                self::andBlock(self::not($a), $b)
+            );
+		}
 		
 		/**
 		 * @return LogicalChain
