@@ -112,16 +112,11 @@ class ArrayExpression implements LogicalObject, MappableObject {
             case self::IS_CONTAINED_BY:
             case self::OVERLAP:
             case self::CONCAT:
-                if (!is_array($this->field->getValue())) {
-                    throw new WrongArgumentException("Trying to use array functions with non-array value:"
-                        . print_r($this->field,1));
-                }
-                $right = "ARRAY [".implode(',', $this->field->getValue())."]"; // @todo Dangerous!
                 return
                     '('
                     .$dialect->toFieldString($this->subject)
                     .' '.$dialect->logicToString($this->logic).' '
-                    .$right //Dangerous!
+                    .$dialect->toValueString($this->field)
                     .')';
 
             // ANY и ALL

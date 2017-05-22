@@ -16,7 +16,7 @@
 		protected $type = null;
 
 		/**
-		 * @param int $value
+		 * @param array $value
 		 * @return DBArray
 		 */
 		public static function create($value)
