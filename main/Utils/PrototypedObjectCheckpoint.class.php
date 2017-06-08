@@ -27,7 +27,7 @@ class PrototypedObjectCheckpoint
     public function isObjectModified()
     {
         foreach ($this->getPropertyList() as $property) {
-            if ($this->_isPropertyModified($property)) {
+            if ($this->isPropertyModified($property)) {
                 return true;
             }
         }
@@ -41,7 +41,7 @@ class PrototypedObjectCheckpoint
     {
         $modifiedPropertyNames = [];
         foreach ($this->getPropertyList() as $property) {
-            if ($this->_isPropertyModified($property)) {
+            if ($this->isPropertyModified($property)) {
                 $modifiedPropertyNames [] = $property->getName();
             }
         }
@@ -49,19 +49,13 @@ class PrototypedObjectCheckpoint
     }
 
     /**
-     * @param $propertyName
+     * @param string $propertyName
      * @return bool
      * @throws WrongArgumentException
      */
     public function isPropertyModified($propertyName)
     {
-        $property = $this->object->proto()->getPropertyByName($propertyName);
-        if ($property->getRelationId() == MetaRelation::ONE_TO_MANY
-            || $property->getRelationId() == MetaRelation::MANY_TO_MANY
-        ) {
-            throw new WrongArgumentException('checking x-to-many relations is not supported');
-        }
-        return $this->_isPropertyModified($property);
+        return $this->extractOldValue($propertyName) !== $this->extractNewValue($propertyName);
     }
 
     public function getOldValue($propertyName)
@@ -74,12 +68,29 @@ class PrototypedObjectCheckpoint
         return PrototypeUtils::getValue($this->object, $propertyName);
     }
 
-    /**
-     * @param LightMetaProperty $property
-     * @return bool|null
-     */
-    protected function _isPropertyModified(LightMetaProperty $property)
+    public function extractOldValue($propertyName)
     {
+        return $this->extractValue($this->clone, $propertyName);
+    }
+
+    public function extractNewValue($propertyName)
+    {
+        return $this->extractValue($this->object, $propertyName);
+    }
+
+    protected function extractValue(Prototyped $object, $propertyName) {
+        if ($propertyName instanceof LightMetaProperty) {
+            $property = $propertyName;
+        } else {
+            $property = $object->proto()->getPropertyByName($propertyName);
+        }
+
+        if ($property->getRelationId() == MetaRelation::ONE_TO_MANY
+            || $property->getRelationId() == MetaRelation::MANY_TO_MANY
+        ) {
+            throw new WrongArgumentException('checking x-to-many relations is not supported');
+        }
+
         // обычные свойства
         if ($property->getRelationId() == null) {
             $getter = $property->getGetter();
@@ -89,23 +100,17 @@ class PrototypedObjectCheckpoint
             return null;
         }
 
-        $valueA = $this->object->{$getter}();
-        $valueB = $this->clone->{$getter}();
+        $value = $object->{$getter}();
 
-        if ($valueA instanceof Date && $valueB instanceof Date) {
-            $valueA = $valueA->toStamp();
-            $valueB = $valueB->toStamp();
+        if ($value instanceof Date) {
+            return $value->toStamp();
+        } else if (in_array($property->getType(), ['integer', 'enum', 'enumeration', 'integerIdentifier'])) {
+            return ($value === null) ? null : (int)$value;
+        } else if (in_array($property->getType(), ['float'])) {
+            return ($value === null) ? null : (float)$value;
+        } else {
+            return $value;
         }
-        if (in_array($property->getType(), ['integer', 'enum', 'enumeration', 'integerIdentifier'])) {
-            $valueA = ($valueA === null) ? null : (int)$valueA;
-            $valueB = ($valueB === null) ? null : (int)$valueB;
-        }
-        if (in_array($property->getType(), ['float'])) {
-            $valueA = ($valueA === null) ? null : (float)$valueA;
-            $valueB = ($valueB === null) ? null : (float)$valueB;
-        }
-
-        return $valueA !== $valueB;
     }
 
     /**
@@ -113,7 +118,13 @@ class PrototypedObjectCheckpoint
      */
     protected function getPropertyList()
     {
-        return $this->object->proto()->getPropertyList();
+        return array_filter(
+            $this->object->proto()->getPropertyList(),
+            function (LightMetaProperty $property) {
+                return $property->getRelationId() != MetaRelation::ONE_TO_MANY
+                    && $property->getRelationId() != MetaRelation::MANY_TO_MANY;
+            }
+        );
     }
 
     /**
