@@ -176,7 +176,7 @@
 				return null;
 			
 			Assert::isArray($objectsList);
-			
+
 			$result = array();
 			
 			foreach ($objectsList as $id => $object) {

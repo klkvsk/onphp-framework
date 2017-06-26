@@ -13,7 +13,8 @@
 	{
 		protected $proto = null;
 		protected $object = null;
-		
+
+		/** @var BasePrimitive[] */
 		protected $mapping = array();
 		
 		public function __construct(EntityProto $proto, &$object)
