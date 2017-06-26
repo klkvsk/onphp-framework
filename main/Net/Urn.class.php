@@ -18,13 +18,13 @@
 	{
 		protected $schemeSpecificPart	= null;
 		
-		protected $knownSubSchemes	= array(
-			'urn'		=> 'Urn',
-			'mailto'	=> 'Urn',
-			'news'		=> 'Urn',
-			'isbn'		=> 'Urn',
-			'tel'		=> 'Urn',
-			'fax'		=> 'Urn',
+		protected static $knownSubSchemes	= array(
+			'urn'		=> Urn::class,
+			'mailto'	=> Urn::class,
+			'news'		=> Urn::class,
+			'isbn'		=> Urn::class,
+			'tel'		=> Urn::class,
+			'fax'		=> Urn::class,
 		);
 		
 		/**
@@ -35,11 +35,14 @@
 			return new self;
 		}
 		
-		public function getKnownSubSchemes()
+		public static function getKnownSubSchemes()
 		{
-			return $this->knownSubSchemes;
+			return array_merge(
+                self::$knownSubSchemes,
+                HttpUrl::getKnownSubSchemes()
+            );
 		}
-		
+
 		public function isValid()
 		{
 			if (

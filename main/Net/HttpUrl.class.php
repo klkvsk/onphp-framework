@@ -14,7 +14,10 @@
 	**/
 	final class HttpUrl extends Url
 	{
-		protected $knownSubSchemes	= array();
+		protected static $knownSubSchemes	= array(
+            'http'		=> HttpUrl::class,
+            'https'		=> HttpUrl::class,
+        );
 		
 		/**
 		 * @return HttpUrl
@@ -23,7 +26,12 @@
 		{
 			return new self;
 		}
-		
+
+        public static function getKnownSubSchemes()
+        {
+            return self::$knownSubSchemes;
+        }
+
 		/**
 		 * @return HttpUrl
 		 * 

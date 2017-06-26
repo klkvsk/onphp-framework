@@ -17,17 +17,15 @@
 	**/
 	class Url extends GenericUri
 	{
-		protected $knownSubSchemes	= array(
-			'http'		=> 'HttpUrl',
-			'https'		=> 'HttpUrl',
-			'ftp'		=> 'Url',
-			'nntp'		=> 'Url',
-			'telnet'	=> 'Url',
-			'gopher'	=> 'Url',
-			'wais'		=> 'Url',
-			'file'		=> 'Url',
-			'prospero'	=> 'Url'
-		);
+		protected static $knownSubSchemes = [
+			'ftp'		=> Url::class,
+			'nntp'		=> Url::class,
+			'telnet'	=> Url::class,
+			'gopher'	=> Url::class,
+			'wais'		=> Url::class,
+			'file'		=> Url::class,
+			'prospero'	=> Url::class,
+        ];
 		
 		/**
 		 * @return Url
@@ -37,9 +35,9 @@
 			return new self;
 		}
 		
-		public function getKnownSubSchemes()
+		public static function getKnownSubSchemes()
 		{
-			return $this->knownSubSchemes;
+			return static::$knownSubSchemes;
 		}
 		
 		public function isValid()
@@ -82,7 +80,7 @@
 			if ($this->scheme || $this->getAuthority())
 				return $this;
 			
-			$urlSubSchemes = Url::create()->getKnownSubSchemes();
+			$urlSubSchemes = Url::getKnownSubSchemes();
 			
 			$matches = array();
 			
