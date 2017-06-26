@@ -20,6 +20,14 @@
 		private static $instances = array();
 		
 		protected function __construct() {/* you can't create me */}
+
+        /**
+         * @return static
+         */
+        public static function me()
+        {
+            return self::getInstance(static::class);
+		}
 		
 		/// @example singleton.php
 		final public static function getInstance(
