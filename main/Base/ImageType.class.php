@@ -17,7 +17,8 @@
 	final class ImageType extends Enumeration
 	{
 		const IMAGETYPE_PJPEG	= 100;
-		
+		const IMAGETYPE_SVG	    = 101;
+
 		const GIF		= IMAGETYPE_GIF;
 		const JPEG		= IMAGETYPE_JPEG;
 		const PNG		= IMAGETYPE_PNG;
@@ -36,6 +37,7 @@
 		const JPEG2000	= IMAGETYPE_JPEG2000;
 		const XBM		= IMAGETYPE_XBM;
 		const PJPEG		= self::IMAGETYPE_PJPEG;
+		const SVG       = self::IMAGETYPE_SVG;
 		
 		protected $names = array(
 			IMAGETYPE_GIF			=> 'gif',
@@ -55,10 +57,11 @@
 			IMAGETYPE_WBMP			=> 'bmp',
 			IMAGETYPE_JPEG2000		=> 'jpc',
 			IMAGETYPE_XBM			=> 'xbm',
-			self::IMAGETYPE_PJPEG	=> 'jpeg'
+			self::IMAGETYPE_PJPEG	=> 'jpeg',
+            self::IMAGETYPE_SVG     => 'svg',
 		);
 		
-		protected $extensions = array(
+		protected static $extensions = array(
 			'gif'	=> IMAGETYPE_GIF,
 			'jpg'	=> IMAGETYPE_JPEG,
 			'jpeg'	=> IMAGETYPE_JPEG,
@@ -77,10 +80,11 @@
 			'iff'	=> IMAGETYPE_IFF,
 			'wbmp'	=> IMAGETYPE_WBMP,
 			'jpc'	=> IMAGETYPE_JPEG2000,
-			'xbm'	=> IMAGETYPE_XBM
+			'xbm'	=> IMAGETYPE_XBM,
+			'svg'	=> self::IMAGETYPE_SVG,
 		);
 		
-		protected $mimeTypes = array(
+		protected static $mimeTypes = array(
 			IMAGETYPE_GIF			=> 'image/gif',
 			IMAGETYPE_JPEG			=> 'image/jpeg',
 			IMAGETYPE_PNG			=> 'image/png',
@@ -98,7 +102,8 @@
 			IMAGETYPE_WBMP			=> 'image/vnd.wap.wbmp',
 			IMAGETYPE_JPEG2000		=> 'image/jpeg',
 			IMAGETYPE_XBM			=> 'image/xbm',
-			self::IMAGETYPE_PJPEG	=> 'image/pjpeg'
+			self::IMAGETYPE_PJPEG	=> 'image/pjpeg',
+			self::IMAGETYPE_SVG	    => 'image/svg+xml',
 		);
 		
 		public static function getAnyId()
@@ -108,19 +113,28 @@
 		
 		public function getMimeType()
 		{
-			return $this->mimeTypes[$this->id];
+			return self::$mimeTypes[$this->id];
 		}
 		
 		public function getExtension()
 		{
-			$flippedExensions = array_flip($this->extensions);
+			$flippedExensions = array_flip(self::$extensions);
 			
 			return $flippedExensions[$this->id];
 		}
 		
 		public function getExtensionList()
 		{
-			return $this->extensions;
+			return self::$extensions;
+		}
+
+        public static function createByMimeType($mimeType)
+        {
+            $id = array_search($mimeType, self::$mimeTypes);
+            if ($id === false) {
+                throw new MissingElementException($mimeType);
+            }
+            return self::create($id);
 		}
 		
 		public static function createByFileName($fileName)
@@ -139,6 +153,18 @@
 			throw new WrongArgumentException(
 				"don't know type for '{$ext}' extension"
 			);
+		}
+
+        public function getImageSize($filename)
+        {
+            if ($this->is(self::SVG)) {
+                $xml = simplexml_load_file($filename);
+                $width  = (int)$xml['width'];
+                $height = (int)$xml['height'];
+            } else {
+                list($width, $height) = getimagesize($filename);
+            }
+            return [ $width, $height ];
 		}
 	}
 ?>

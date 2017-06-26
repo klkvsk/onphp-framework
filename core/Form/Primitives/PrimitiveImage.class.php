@@ -120,7 +120,8 @@
 				return $result;
 			
 			try {
-				list($width, $height, $type) = getimagesize($this->value);
+			    $type = ImageType::createByMimeType($this->mimeType);
+			    list ($width, $height) = $type->getImageSize($this->value);
 			} catch (BaseException $e) {
 				// bad luck
 				return false;
@@ -137,7 +138,7 @@
 				&& !($this->maxHeight && ($height > $this->maxHeight))
 				&& !($this->minHeight && ($height < $this->minHeight))
 			) {
-				$this->type = new ImageType($type);
+				$this->type = $type;
 				$this->width = $width;
 				$this->height = $height;
 				
