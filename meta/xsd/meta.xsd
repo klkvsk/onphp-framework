@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns="data:onphp-meta"
+        targetNamespace="data:onphp-meta"
+        elementFormDefault="qualified"
+>
+
+    <xs:element name="metaconfiguration" type="MetaconfigurationType" />
+
+    <xs:complexType name="MetaconfigurationType">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="include">
+                <xs:complexType>
+                    <xs:attribute name="file" type="xs:string" use="required" />
+                    <xs:attribute name="generate" type="xs:boolean" default="true" />
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="sources">
+                <xs:complexType>
+                    <xs:attribute name="name" type="xs:string" use="required" />
+                    <xs:attribute name="default" type="xs:boolean" default="false" />
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="classes">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="class" type="ClassType" maxOccurs="unbounded" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="plugin">
+                <xs:complexType>
+                    <xs:attribute name="name" type="xs:string" use="required" />
+                    <xs:attribute name="class" type="xs:string" use="required" />
+                </xs:complexType>
+            </xs:element>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="ClassType">
+        <xs:sequence>
+
+            <xs:element name="implement" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:attribute name="interface" type="xs:string" />
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="properties">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="identifier" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:attribute name="name" type="xs:string" />
+                                <xs:attribute name="type" type="xs:string" />
+                                <xs:attribute name="size" type="xs:string" />
+                                <xs:attribute name="column" type="xs:string" />
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="property" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:attribute name="name" type="xs:string" use="required" />
+                                <xs:attribute name="type" type="xs:string" use="required" />
+                                <xs:attribute name="size" type="xs:string" />
+                                <xs:attribute name="column" type="xs:string" />
+                                <xs:attribute name="helperTable" type="xs:string" />
+                                <xs:attribute name="default" type="xs:string" />
+                                <xs:attribute name="required" type="xs:boolean" />
+                                <xs:attribute name="reference" type="xs:boolean" />
+                                <xs:attribute name="relation">
+                                    <xs:simpleType>
+                                        <xs:restriction base="xs:string">
+                                            <xs:enumeration value="OneToOne" />
+                                            <xs:enumeration value="OneToMany" />
+                                            <xs:enumeration value="ManyToMany" />
+                                        </xs:restriction>
+                                    </xs:simpleType>
+                                </xs:attribute>
+                                <xs:attribute name="fetch">
+                                    <xs:simpleType>
+                                        <xs:restriction base="xs:string">
+                                            <xs:enumeration value="lazy" />
+                                            <xs:enumeration value="cascade" />
+                                        </xs:restriction>
+                                    </xs:simpleType>
+                                </xs:attribute>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="pattern">
+                <xs:complexType>
+                    <xs:attribute name="name" use="required">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="DictionaryClass" />
+                                <xs:enumeration value="AbstractClass" />
+                                <xs:enumeration value="AbstractValueObject" />
+                                <xs:enumeration value="StraightMapping" />
+                                <xs:enumeration value="EnumerationClass" />
+                                <xs:enumeration value="EnumClass" />
+                                <xs:enumeration value="RegistryClass" />
+                                <xs:enumeration value="SpookedClass" />
+                                <xs:enumeration value="SpookedEnumeration" />
+                                <xs:enumeration value="SpookedEnum" />
+                                <xs:enumeration value="SpookedRegistry" />
+                                <xs:enumeration value="ValueObject" />
+                                <xs:enumeration value="InternalClass" />
+                                <xs:enumeration value="NosqlClass" />
+                                <xs:enumeration value="ObjectWithEmptyDAOClass" />
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+
+        <xs:attribute name="name" type="xs:ID" use="required" />
+        <xs:attribute name="type">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="final" />
+                    <xs:enumeration value="abstract" />
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="extends" type="xs:string" />
+        <xs:attribute name="source" type="xs:string" />
+        <xs:attribute name="table" type="xs:string" />
+
+    </xs:complexType>
+
+</xs:schema>

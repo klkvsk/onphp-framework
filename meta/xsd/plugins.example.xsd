@@ -1,0 +1,5 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <!-- This is how multiple XSD can be composited into one, to validate core meta + plugins meta -->
+    <xs:import namespace="data:onphp-meta" schemaLocation="meta.xsd"/>
+    <xs:import namespace="data:onphp-plugin" schemaLocation="some-plugin.xsd"/>
+</xs:schema>
