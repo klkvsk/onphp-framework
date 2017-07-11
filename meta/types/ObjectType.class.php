@@ -210,7 +210,7 @@ EOT;
 				return <<<EOT
 
 /**
- * @return {$holder->getClass()->getName()}
+ * @return \$this
 **/
 public function {$methodName}({$property->getType()->getClassName()} \${$name})
 {
@@ -225,7 +225,7 @@ EOT;
 					$method = <<<EOT
 
 /**
- * @return {$property->getClass()->getName()}
+ * @return \$this
 **/
 public function {$methodName}({$this->className} \${$name})
 {
@@ -236,7 +236,7 @@ public function {$methodName}({$this->className} \${$name})
 }
 
 /**
- * @return {$property->getClass()->getName()}
+ * @return \$this
 **/
 public function {$methodName}Id(\$id)
 {
@@ -251,7 +251,7 @@ EOT;
 					$method = <<<EOT
 
 /**
- * @return {$property->getClass()->getName()}
+ * @return \$this
 **/
 public function {$methodName}({$this->className} \${$name})
 {
@@ -288,7 +288,7 @@ EOT;
 					$method = <<<EOT
 
 /**
- * @return {$holder->getClass()->getName()}
+ * @return \$this
 **/
 public function {$methodName}()
 {
@@ -303,7 +303,7 @@ EOT;
 					$method = <<<EOT
 
 /**
- * @return {$class->getName()}
+ * @return \$this
 **/
 public function {$methodName}()
 {
@@ -318,7 +318,7 @@ EOT;
 					$method = <<<EOT
 
 /**
- * @return {$class->getName()}
+ * @return \$this
 **/
 public function {$methodName}()
 {

@@ -66,7 +66,7 @@ EOT;
 			return <<<EOT
 
 /**
- * @return {$class->getName()}
+ * @return \$this
 **/
 public function {$methodName}(array \${$name}{$default})
 {
@@ -80,5 +80,14 @@ EOT;
 
 		Assert::isUnreachable();
 	}
+
+    public function getHint()
+    {
+        return <<<EOT
+/**
+ * @return array
+**/
+EOT;
+    }
 
 }

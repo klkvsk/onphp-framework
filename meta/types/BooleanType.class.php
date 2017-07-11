@@ -72,12 +72,17 @@
 			
 			if ($holder) {
 				return <<<EOT
-
+/**
+ * @return boolean
+**/
 public function {$compatName}()
 {
 	return \$this->{$holder->getName()}->{$compatName}();
 }
 
+/**
+ * @return boolean
+**/
 public function {$methodName}()
 {
 	return \$this->{$holder->getName()}->{$methodName}();
@@ -86,12 +91,17 @@ public function {$methodName}()
 EOT;
 			} else {
 				return <<<EOT
-
+/**
+ * @return boolean
+**/
 public function {$compatName}()
 {
 	return \$this->{$name};
 }
 
+/**
+ * @return boolean
+**/
 public function {$methodName}()
 {
 	return \$this->{$name};
@@ -116,7 +126,7 @@ EOT;
 				return <<<EOT
 
 /**
- * @return {$holder->getClass()->getName()}
+ * @return \$this
 **/
 public function {$methodName}(\${$name})
 {
@@ -131,7 +141,7 @@ EOT;
 					$method = <<<EOT
 
 /**
- * @return {$class->getName()}
+ * @return \$this
 **/
 public function {$methodName}(\${$name} = false)
 {
@@ -145,7 +155,7 @@ EOT;
 					$method = <<<EOT
 
 /**
- * @return {$class->getName()}
+ * @return \$this
 **/
 public function {$methodName}(\${$name} = null)
 {
@@ -162,5 +172,14 @@ EOT;
 			
 			return $method;
 		}
+
+        public function getHint()
+        {
+            return <<<EOT
+/**
+ * @return boolean
+**/
+EOT;
+        }
 	}
 ?>

@@ -57,5 +57,14 @@
 		{
 			return 'DataType::create(DataType::INTEGER)';
 		}
-	}
+
+        public function getHint()
+        {
+            return <<<EOT
+/**
+ * @return int
+**/
+EOT;
+        }
+    }
 ?>

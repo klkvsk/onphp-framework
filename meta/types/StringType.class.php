@@ -55,5 +55,14 @@
 					? 'DataType::create(DataType::VARCHAR)'
 					: 'DataType::create(DataType::TEXT)';
 		}
+
+        public function getHint()
+        {
+            return <<<EOT
+/**
+ * @return string
+**/
+EOT;
+        }
 	}
 ?>

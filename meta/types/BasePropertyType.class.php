@@ -69,7 +69,9 @@
 			$methodName = 'get'.ucfirst($property->getName());
 
 			return <<<EOT
-
+/**
+ * @return {$property->getType()->getPrimitiveName()}
+**/
 public function {$methodName}()
 {
 	return \$this->{$name};
@@ -114,7 +116,7 @@ EOT;
 				return <<<EOT
 
 /**
- * @return {$holder->getClass()->getName()}
+ * @return \$this
 **/
 public function {$methodName}(\${$name})
 {
@@ -128,7 +130,7 @@ EOT;
 				return <<<EOT
 
 /**
- * @return {$class->getName()}
+ * @return \$this
 **/
 public function {$methodName}(\${$name})
 {

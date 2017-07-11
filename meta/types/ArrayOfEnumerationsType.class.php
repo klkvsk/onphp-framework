@@ -66,7 +66,7 @@ EOT;
 
 /**
  * @param \${$name} {$this->enumerationClass->getName()}[]
- * @return {$class->getName()}
+ * @return \$this
 **/
 public function {$methodName}(array \${$name}{$default})
 {

@@ -10,7 +10,7 @@
  *                                                                         *
  ***************************************************************************/
 
-final class UuidType extends BasePropertyType {
+final class UuidType extends StringType {
 
 	public function getPrimitiveName() {
 		return 'uuid';
@@ -20,7 +20,7 @@ final class UuidType extends BasePropertyType {
 		return 'null';
 	}
 
-	public function toColumnType() {
+	public function toColumnType($length = null) {
 		return 'DataType::create(DataType::UUID)';
 	}
 

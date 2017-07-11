@@ -91,7 +91,7 @@ EOT;
 /**
  * @param string \${$name}
  * @param string \$langCode
- * @return {$class->getName()}
+ * @return \$this
 **/
 public function set{$methodNamePart}(\${$name}, \$langCode = null)
 {
