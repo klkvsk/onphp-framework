@@ -69,9 +69,10 @@
 			$methodName = 'get'.ucfirst($property->getName());
 
 			return <<<EOT
+			
 /**
- * @return {$property->getType()->getPrimitiveName()}
-**/
+ * @return {$this->getHint()}
+ */
 public function {$methodName}()
 {
 	return \$this->{$name};
@@ -116,8 +117,9 @@ EOT;
 				return <<<EOT
 
 /**
+ * @param {$property->getType()->getHint()} \${$name}
  * @return \$this
-**/
+ */
 public function {$methodName}(\${$name})
 {
 	\$this->{$holder->getName()}->{$methodName}(\${$name});
@@ -130,8 +132,9 @@ EOT;
 				return <<<EOT
 
 /**
+ * @param {$this->getHint()} \${$name}
  * @return \$this
-**/
+ */
 public function {$methodName}(\${$name})
 {
 	\$this->{$name} = \${$name};
@@ -145,9 +148,10 @@ EOT;
 			Assert::isUnreachable();
 		}
 
-		public function getHint()
-		{
-			return null;
+        public function getHint()
+        {
+            return 'mixed';
 		}
+
 	}
 ?>

@@ -54,7 +54,7 @@ public function __construct({$className} \${$propertyName}, \$lazy = false)
 
 /**
  * @return {$containerName}
-**/
+ */
 public static function create({$className} \${$propertyName}, \$lazy = false)
 {
 	return new self(\${$propertyName}, \$lazy);

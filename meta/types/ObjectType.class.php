@@ -74,8 +74,7 @@
 			$name = $property->getName();
 			
 			$methodName = 'get'.ucfirst($property->getName());
-			
-			$classHint = $property->getType()->getHint();
+			$nullReturn = $property->isRequired() ? '' : '|null';
 			
 			if ($holder) {
 				if ($property->getType() instanceof ObjectType) {
@@ -87,8 +86,8 @@
 				return <<<EOT
 
 /**
- * @return {$class}
-**/
+ * @return {$class}{$nullReturn}
+ */
 public function {$methodName}()
 {
 	return \$this->{$holder->getName()}->{$methodName}();
@@ -108,10 +107,15 @@ EOT;
 					$fetchObjectString = $isEnumeration
 						? "new {$className}(\$this->{$name}Id)"
 						: "{$className}::dao()->getById(\$this->{$name}Id)";
-					
+
+					$identifierHint = 'int';
+					$property->getType()->getClass()->getIdentifier()->getType()->getPrimitiveName();
+
 					$method = <<<EOT
 
-{$classHint}
+/**
+ * @return {$this->getHint()}{$nullReturn}
+ */
 public function {$methodName}()
 {
 	if (!\$this->{$name} && \$this->{$name}Id) {
@@ -123,7 +127,7 @@ public function {$methodName}()
 
 public function {$methodName}Id()
 {
-	return \$this->{$name}
+	return \$this->{$name} instanceof Identifiable
 		? \$this->{$name}->getId()
 		: \$this->{$name}Id;
 }
@@ -142,11 +146,12 @@ EOT;
 						$method = <<<EOT
 
 /**
+ * @param boolean \$lazy
  * @return {$containerName}
-**/
+ */
 public function get{$methodName}(\$lazy = false)
 {
-	if (!\$this->{$name} || (\$this->{$name}->isLazy() != \$lazy)) {
+	if (! (\$this->{$name} instanceof {$containerName}) || (\$this->{$name}->isLazy() != \$lazy)) {
 		\$this->{$name} = new {$containerName}(\$this, \$lazy);
 	}
 	
@@ -154,8 +159,11 @@ public function get{$methodName}(\$lazy = false)
 }
 
 /**
- * @return {$class->getName()}
-**/
+ * @param array \$collection
+ * @param boolean \$lazy
+ * @return \$this
+ * @throws WrongStateException
+ */
 public function fill{$methodName}(\$collection, \$lazy = false)
 {
 	\$this->{$name} = new {$containerName}(\$this, \$lazy);
@@ -175,7 +183,9 @@ EOT;
 				} else {
 					$method = <<<EOT
 
-{$classHint}
+/**
+ * @return {$this->getHint()}{$nullReturn}
+ */
 public function {$methodName}()
 {
 	return \$this->{$name};
@@ -204,14 +214,14 @@ EOT;
 			
 			$name = $property->getName();
 			$methodName = 'set'.ucfirst($name);
-			$classHint = $this->getHint();
-			
+
 			if ($holder) {
 				return <<<EOT
 
 /**
+ * @param {$property->getType()->getHint()} \${$name}
  * @return \$this
-**/
+ */
 public function {$methodName}({$property->getType()->getClassName()} \${$name})
 {
 	\$this->{$holder->getName()}->{$methodName}(\${$name});
@@ -225,8 +235,9 @@ EOT;
 					$method = <<<EOT
 
 /**
+ * @param {$this->getHint()} \${$name}
  * @return \$this
-**/
+ */
 public function {$methodName}({$this->className} \${$name})
 {
 	\$this->{$name} = \${$name};
@@ -236,8 +247,9 @@ public function {$methodName}({$this->className} \${$name})
 }
 
 /**
+ * @param \$id
  * @return \$this
-**/
+ */
 public function {$methodName}Id(\$id)
 {
 	\$this->{$name} = null;
@@ -251,8 +263,9 @@ EOT;
 					$method = <<<EOT
 
 /**
+ * @param {$this->getHint()} \${$name}
  * @return \$this
-**/
+ */
 public function {$methodName}({$this->className} \${$name})
 {
 	\$this->{$name} = \${$name};
@@ -289,7 +302,7 @@ EOT;
 
 /**
  * @return \$this
-**/
+ */
 public function {$methodName}()
 {
 	\$this->{$holder->getName()}->{$methodName}();
@@ -304,7 +317,7 @@ EOT;
 
 /**
  * @return \$this
-**/
+ */
 public function {$methodName}()
 {
 	\$this->{$name} = null;
@@ -319,7 +332,7 @@ EOT;
 
 /**
  * @return \$this
-**/
+ */
 public function {$methodName}()
 {
 	\$this->{$name} = null;
@@ -341,11 +354,7 @@ EOT;
 		
 		public function getHint()
 		{
-			return <<<EOT
-/**
- * @return {$this->getClassName()}
-**/
-EOT;
+		    return $this->getClassName();
 		}
 	}
 ?>

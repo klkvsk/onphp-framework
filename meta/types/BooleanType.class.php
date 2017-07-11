@@ -74,7 +74,7 @@
 				return <<<EOT
 /**
  * @return boolean
-**/
+ */
 public function {$compatName}()
 {
 	return \$this->{$holder->getName()}->{$compatName}();
@@ -82,7 +82,7 @@ public function {$compatName}()
 
 /**
  * @return boolean
-**/
+ */
 public function {$methodName}()
 {
 	return \$this->{$holder->getName()}->{$methodName}();
@@ -93,7 +93,7 @@ EOT;
 				return <<<EOT
 /**
  * @return boolean
-**/
+ */
 public function {$compatName}()
 {
 	return \$this->{$name};
@@ -101,7 +101,7 @@ public function {$compatName}()
 
 /**
  * @return boolean
-**/
+ */
 public function {$methodName}()
 {
 	return \$this->{$name};
@@ -126,8 +126,9 @@ EOT;
 				return <<<EOT
 
 /**
+ * @param boolean \${$name}
  * @return \$this
-**/
+ */
 public function {$methodName}(\${$name})
 {
 	\$this->{$holder->getName()}->{$methodName}(\${$name});
@@ -141,8 +142,9 @@ EOT;
 					$method = <<<EOT
 
 /**
+ * @param boolean \${$name}
  * @return \$this
-**/
+ */
 public function {$methodName}(\${$name} = false)
 {
 	\$this->{$name} = (\${$name} === true);
@@ -155,8 +157,9 @@ EOT;
 					$method = <<<EOT
 
 /**
+ * @param boolean|null \${$name}
  * @return \$this
-**/
+ */
 public function {$methodName}(\${$name} = null)
 {
 	Assert::isTernaryBase(\${$name});
@@ -175,11 +178,7 @@ EOT;
 
         public function getHint()
         {
-            return <<<EOT
-/**
- * @return boolean
-**/
-EOT;
+            return 'boolean';
         }
 	}
 ?>

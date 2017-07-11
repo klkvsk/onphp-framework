@@ -58,11 +58,7 @@
 
         public function getHint()
         {
-            return <<<EOT
-/**
- * @return string
-**/
-EOT;
+            return 'string';
         }
 	}
 ?>

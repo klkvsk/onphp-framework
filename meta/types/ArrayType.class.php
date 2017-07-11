@@ -39,8 +39,8 @@ class ArrayType extends BasePropertyType {
 		return <<<EOT
 
 /**
- * @return array
-**/
+ * @return {$this->getHint()}
+ */
 public function {$methodName}()
 {
 	return \$this->{$name};
@@ -58,7 +58,8 @@ EOT;
 		$name = $property->getName();
 		$methodName = 'set'.ucfirst($name);
 
-		$default = $property->isRequired() ? '' : ' = null';
+		$nullArg = $property->isRequired() ? '' : ' = null';
+		$nullParam = $property->isRequired() ? '' : '|null';
 
 		if ($holder) {
 			Assert::isUnreachable();
@@ -66,9 +67,10 @@ EOT;
 			return <<<EOT
 
 /**
+ * @param {$this->getHint()}{$nullParam} \${$name}
  * @return \$this
-**/
-public function {$methodName}(array \${$name}{$default})
+ */
+public function {$methodName}(array \${$name}{$nullArg})
 {
 	\$this->{$name} = \${$name};
 
@@ -83,11 +85,7 @@ EOT;
 
     public function getHint()
     {
-        return <<<EOT
-/**
- * @return array
-**/
-EOT;
+        return 'array';
     }
 
 }

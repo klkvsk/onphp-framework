@@ -33,11 +33,12 @@ class TranslatedStoreType extends HstoreType {
         $name = $property->getName();
 
         $methodName = 'get'.ucfirst($property->getName());
-        $classHint = $classHint = $property->getType()->getHint();
 
         return <<<EOT
 
-{$classHint}
+/**
+ * @return {$this->getClassName()}
+ */
 public function {$methodName}Store()
 {
 	if (!\$this->{$name}) {
@@ -49,7 +50,7 @@ public function {$methodName}Store()
 /**
  * @param string \$langCode
  * @return string|null
- **/
+ */
 public function {$methodName}(\$langCode = null)
 {
 	/** @var \$store {$this->getClassName()} */
@@ -92,7 +93,7 @@ EOT;
  * @param string \${$name}
  * @param string \$langCode
  * @return \$this
-**/
+ */
 public function set{$methodNamePart}(\${$name}, \$langCode = null)
 {
 	if (\$this->useTranslatedStore()) {

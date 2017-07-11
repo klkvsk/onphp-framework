@@ -61,5 +61,12 @@
 		{
 			return 'DataType::create(DataType::REAL)';
 		}
-	}
+
+        public function getHint()
+        {
+            return 'float';
+        }
+
+
+    }
 ?>
