@@ -8,7 +8,7 @@
 /**
  * @ingroup Builders
  */
-final class AutoEmptyDaoBuilder extends BaseBuilder {
+final class AutoEmptyDaoBuilder extends BaseDaoBuilder {
 
 	public static function build(MetaClass $class)
 	{
@@ -24,13 +24,11 @@ final class AutoEmptyDaoBuilder extends BaseBuilder {
 
 		$out = self::getHead();
 
-		$out .= <<<EOT
-abstract class Auto{$class->getName()}DAO extends {$parentName}
-{
+		$out .= "abstract class Auto{$class->getName()}DAO extends {$parentName} \n{";
 
-EOT;
-
-		$out .= self::buildPointers($class)."\n}\n";
+        $out .=
+            self::buildPointers($class)
+            ."\n}\n";
 
 		return $out.self::getHeel();
 	}

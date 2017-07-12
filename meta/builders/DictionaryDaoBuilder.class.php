@@ -12,26 +12,19 @@
 	/**
 	 * @ingroup Builders
 	**/
-	final class DictionaryDaoBuilder extends BaseBuilder
+	final class DictionaryDaoBuilder extends BaseDaoBuilder
 	{
 		public static function build(MetaClass $class)
 		{
 			$out = self::getHead();
 			
-			$out .= <<<EOT
-abstract class Auto{$class->getName()}DAO extends StorableDAO
-{
+			$out .= "abstract class Auto{$class->getName()}DAO extends StorableDAO \n{";
 
-EOT;
+            $out .=
+                self::buildGetters($class)
+                . self::buildPointers($class)
+                ."\n}\n";
 
-			$pointers = self::buildPointers($class);
-			
-			$out .= <<<EOT
-{$pointers}
-}
-
-EOT;
-			
 			return $out.self::getHeel();
 		}
 	}

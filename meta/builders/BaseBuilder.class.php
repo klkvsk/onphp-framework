@@ -19,99 +19,6 @@
 			throw new UnimplementedFeatureException('i am forgotten method');
 		}
 
-		protected static function buildPointers(MetaClass $class)
-		{
-			$out = null;
-
-			if (!$class->getPattern() instanceof AbstractClassPattern) {
-				if (
-					$class->getIdentifier()->getColumnName() !== 'id'
-				) {
-					$out .= <<<EOT
-public function getIdName()
-{
-	return '{$class->getIdentifier()->getColumnName()}';
-}
-
-EOT;
-				}
-
-				$out .= <<<EOT
-public function getTable()
-{
-	return '{$class->getTableName()}';
-}
-
-public function getObjectName()
-{
-	return '{$class->getName()}';
-}
-
-
-EOT;
-
-
-				if(
-					$class->getIdentifier()->getType() instanceof UuidType
-				)
-				{
-					$out .= <<<EOT
-public function getSequence()
-{
-	return 'uuid';
-}
-EOT;
-				} else {
-					$out .= <<<EOT
-public function getSequence()
-{
-	return '{$class->getTableName()}_id';
-}
-EOT;
-				}
-
-			} elseif ($class->getWithInternalProperties()) {
-				$out .= <<<EOT
-// no get{Table,ObjectName,Sequence} for abstract class
-EOT;
-			}
-
-			if ($liaisons = $class->getReferencingClasses()) {
-				$uncachers = array();
-				foreach ($liaisons as $className) {
-					if( method_exists($className,'dao') ) {
-						$uncachers[] = $className.'::dao()->uncacheLists();';
-					}
-				}
-
-				$uncachers = implode("\n", $uncachers);
-
-				$out .= <<<EOT
-
-
-public function uncacheLists()
-{
-{$uncachers}
-
-return parent::uncacheLists();
-}
-EOT;
-			}
-
-			if ($source = $class->getSourceLink()) {
-				$out .= <<<EOT
-
-
-public function getLinkName()
-{
-	return '{$source}';
-}
-EOT;
-			}
-
-			return $out;
-		}
-
 		protected static function getHead()
 		{
 			$head = self::startCap();
@@ -154,7 +61,7 @@ EOT;
 
 		protected static function getHeel()
 		{
-			return '?>';
+			return '';
 		}
 	}
 ?>

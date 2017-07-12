@@ -531,7 +531,7 @@
 				."'{$this->type}', "
 				.(
 					$this->className
-						? "'{$this->className}'"
+						? "{$this->className}::class"
 						: 'null'
 				)
 				.', '

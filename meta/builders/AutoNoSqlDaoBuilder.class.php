@@ -13,7 +13,7 @@
 /**
  * @ingroup Builders
  */
-final class AutoNoSqlDaoBuilder extends BaseBuilder {
+final class AutoNoSqlDaoBuilder extends BaseDaoBuilder {
 
 	public static function build(MetaClass $class)
 	{
@@ -29,13 +29,12 @@ final class AutoNoSqlDaoBuilder extends BaseBuilder {
 
 		$out = self::getHead();
 
-		$out .= <<<EOT
-abstract class Auto{$class->getName()}DAO extends {$parentName}
-{
+		$out .= "abstract class Auto{$class->getName()}DAO extends {$parentName} \n{";
 
-EOT;
-
-		$out .= self::buildPointers($class)."\n}\n";
+        $out .=
+            self::buildGetters($class)
+            . self::buildPointers($class)
+            ."\n}\n";
 
 		return $out.self::getHeel();
 	}
