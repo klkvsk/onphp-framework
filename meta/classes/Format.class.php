@@ -14,6 +14,8 @@
 	**/
 	final class Format extends StaticFactory
 	{
+	    const TAB_SIZE = 4;
+
 		// dumb and straigh beautifier
 		public static function indentize($data)
 		{
@@ -24,7 +26,7 @@
 			$first	= true; // for schema.php-like files
 			
 			foreach (explode("\n", $data) as $string) {
-				$string = preg_replace('~^[\t]+~', null, rtrim($string))."\n";
+				$string = preg_replace('~^(\t| {' . self::TAB_SIZE . '})+~', null, rtrim($string))."\n";
 				
 				if ($string == "}\n") {
 					$indent -= $chain;
@@ -44,7 +46,7 @@
 				
 				if ($string <> "\n") {
 					if ($indent > 0)
-						$out .= str_pad(null, $indent, "\t", STR_PAD_LEFT).$string;
+						$out .= str_pad(null, $indent * self::TAB_SIZE, " ", STR_PAD_LEFT).$string;
 					else
 						$out .= $string;
 				}
@@ -83,7 +85,7 @@
 				
 				if ($string == "\n") {
 					if (!$first && ($indent > 0)) {
-						$out .= str_pad(null, $indent, "\t", STR_PAD_LEFT).$string;
+						$out .= str_pad(null, $indent * self::TAB_SIZE, " ", STR_PAD_LEFT).$string;
 					} else {
 						$out .= $string;
 						$first = false;
