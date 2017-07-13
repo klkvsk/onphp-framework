@@ -39,7 +39,7 @@
 		}
 		
 		/**
-		 * @return BasePrimitive
+		 * @return $this
 		**/
 		public function setName($name)
 		{
@@ -54,7 +54,7 @@
 		}
 		
 		/**
-		 * @return BasePrimitive
+         * @return $this
 		**/
 		public function setDefault($default)
 		{
@@ -92,7 +92,7 @@
 		}
 		
 		/**
-		 * @return BasePrimitive
+         * @return $this
 		**/
 		public function setValue($value)
 		{
@@ -102,7 +102,7 @@
 		}
 		
 		/**
-		 * @return BasePrimitive
+         * @return $this
 		**/
 		public function dropValue()
 		{
@@ -112,7 +112,7 @@
 		}
 		
 		/**
-		 * @return BasePrimitive
+         * @return $this
 		 * 
 		 * usually, you should not use this method
 		**/
@@ -129,7 +129,7 @@
 		}
 		
 		/**
-		 * @return BasePrimitive
+         * @return $this
 		**/
 		public function setRequired($really = false)
 		{
@@ -139,7 +139,7 @@
 		}
 		
 		/**
-		 * @return BasePrimitive
+         * @return $this
 		**/
 		public function required()
 		{
@@ -149,7 +149,7 @@
 		}
 		
 		/**
-		 * @return BasePrimitive
+         * @return $this
 		**/
 		public function optional()
 		{
@@ -164,7 +164,7 @@
 		}
 		
 		/**
-		 * @return BasePrimitive
+         * @return $this
 		**/
 		public function clean()
 		{

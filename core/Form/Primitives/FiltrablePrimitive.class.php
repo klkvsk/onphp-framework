@@ -29,7 +29,7 @@
 		}
 
 		/**
-		 * @return FiltrablePrimitive
+         * @return $this
 		**/
 		public function setDisplayFilter(FilterChain $chain)
 		{
@@ -39,7 +39,7 @@
 		}
 		
 		/**
-		 * @return FiltrablePrimitive
+         * @return $this
 		**/
 		public function addDisplayFilter(Filtrator $filter)
 		{
@@ -49,7 +49,7 @@
 		}
 
 		/**
-		 * @return FiltrablePrimitive
+         * @return $this
 		**/
 		public function dropDisplayFilters()
 		{
@@ -71,7 +71,7 @@
 		}
 		
 		/**
-		 * @return FiltrablePrimitive
+         * @return $this
 		**/
 		public function setImportFilter(FilterChain $chain)
 		{
@@ -81,7 +81,7 @@
 		}
 		
 		/**
-		 * @return FiltrablePrimitive
+         * @return $this
 		**/
 		public function addImportFilter(Filtrator $filter)
 		{
@@ -91,7 +91,7 @@
 		}
 
 		/**
-		 * @return FiltrablePrimitive
+         * @return $this
 		**/
 		public function dropImportFilters()
 		{
@@ -117,7 +117,7 @@
 		}
 
 		/**
-		 * @return FiltrablePrimitive
+         * @return $this
 		**/
 		protected function selfFilter()
 		{

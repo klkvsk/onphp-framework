@@ -149,12 +149,18 @@
 			else
 				return $primitive->getActualValue();
 		}
-		
+
+        /**
+         * @return string[]
+         */
 		public function getPrimitiveNames()
 		{
 			return array_keys($this->primitives);
 		}
-		
+
+        /**
+         * @return BasePrimitive[]
+         */
 		public function getPrimitiveList()
 		{
 			return $this->primitives;

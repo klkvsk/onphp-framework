@@ -24,7 +24,7 @@
 		}
 		
 		/**
-		 * @return RangedPrimitive
+         * @return $this
 		**/
 		public function setMin($min)
 		{
@@ -39,7 +39,7 @@
 		}
 		
 		/**
-		 * @return RangedPrimitive
+         * @return $this
 		**/
 		public function setMax($max)
 		{
