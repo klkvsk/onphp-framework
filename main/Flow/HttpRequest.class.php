@@ -12,7 +12,7 @@
 	/**
 	 * @ingroup Flow
 	**/
-	final class HttpRequest
+	class HttpRequest
 	{
 		// contains all variables from $_GET
 		private $get 		= array();
@@ -46,7 +46,7 @@
 		**/
 		public static function create()
 		{
-			return new self;
+			return new static;
 		}
 		
 		public function &getGet()
