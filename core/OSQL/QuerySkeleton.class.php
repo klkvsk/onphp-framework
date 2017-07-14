@@ -28,11 +28,13 @@
 		{
 			return $this->whereLogic;
 		}
-		
-		/**
-		 * @throws WrongArgumentException
-		 * @return QuerySkeleton
-		**/
+
+        /**
+         * @param LogicalObject $exp
+         * @param $logic
+         * @return $this
+         * @throws WrongArgumentException
+         */
 		public function where(LogicalObject $exp, $logic = null)
 		{
 			if ($this->where && !$logic)
@@ -51,7 +53,7 @@
 		}
 		
 		/**
-		 * @return QuerySkeleton
+		 * @return $this
 		**/
 		public function andWhere(LogicalObject $exp)
 		{
@@ -59,7 +61,7 @@
 		}
 		
 		/**
-		 * @return QuerySkeleton
+		 * @return $this
 		**/
 		public function orWhere(LogicalObject $exp)
 		{
@@ -67,7 +69,7 @@
 		}
 		
 		/**
-		 * @return QuerySkeleton
+		 * @return $this
 		**/
 		public function returning($field, $alias = null)
 		{
@@ -86,7 +88,7 @@
 		}
 		
 		/**
-		 * @return QuerySkeleton
+		 * @return $this
 		**/
 		public function dropReturning()
 		{
@@ -176,10 +178,12 @@
 			
 			return $alias;
 		}
-		
-		/**
-		 * @return QuerySkeleton
-		**/
+
+        /**
+         * @param Dialect $dialect
+         * @return $this
+         * @throws UnimplementedFeatureException
+         */
 		protected function checkReturning(Dialect $dialect)
 		{
 			if (
