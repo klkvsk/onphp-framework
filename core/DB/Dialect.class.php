@@ -30,12 +30,10 @@
 		abstract public function hasMultipleTruncate();
 		abstract public function hasReturning();
 		
-		/**
-			must be implemented too:
-			
-			public static function quoteValue($value);
-		**/
-		
+        public static function quoteValue($value) {
+            throw new UnimplementedFeatureException();
+        }
+
 		public static function quoteField($field)
 		{
 			return self::quoteTable($field);
