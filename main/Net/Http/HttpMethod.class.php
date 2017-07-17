@@ -47,6 +47,19 @@
 			self::LOCK		=> 'LOCK',
 			self::UNLOCK 	=> 'UNLOCK',
 		);
+
+        public static function createByName($methodName)
+        {
+            $methodName = strtoupper($methodName);
+            foreach (static::makeNameList() as $id => $name) {
+                if ($name == $methodName) {
+                    return static::create($id);
+                }
+            }
+            throw new MissingElementException(
+                static::class . '::' . $methodName . ' does not exist'
+            );
+		}
 		
 		public static function get()
 		{
@@ -67,5 +80,6 @@
 		{
 			return new self(self::DELETE);
 		}
+
 	}
 ?>
