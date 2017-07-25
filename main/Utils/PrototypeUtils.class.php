@@ -125,8 +125,12 @@ class PrototypeUtils
     public static function setValue(Prototyped $object, $path, $value) {
         $path = explode('.', $path);
         $valueName = array_pop($path);
-        if ($path)
+        if ($path) {
             $object = self::getValue($object, implode('.', $path));
+            if (!$object) {
+                throw new ObjectNotFoundException('can not set into null at ' . implode('.', $path));
+            }
+        }
 
         $setter = 'set' . ucfirst($valueName);
 		$dropper = 'drop' . ucfirst($valueName);

@@ -44,7 +44,7 @@ class ArrayOfPrimitive extends FiltrablePrimitive {
 
         foreach ($this->raw as $key => $element) {
             $this->primitive->clean();
-            if (!$this->primitive->importValue($element)) {
+            if (!$this->primitive->import([ $this->getName() => $element ])) {
                 $this->imported = false;
             }
             $this->customError = $this->customError ?: $this->primitive->getCustomError();
