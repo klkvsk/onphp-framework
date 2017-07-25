@@ -25,15 +25,8 @@ class PropertySetter extends PrototypedSetter
                 "knows nothing about property '{$name}'"
             );
 
-        Assert::isTrue(!is_object($value), 'cannot put objects into scope');
-
         $primitive = $this->mapping[$name];
-
-        try {
-            $this->object->{$primitive->getName()} = $value;
-        } catch (Exception $exception) {
-            die();
-        }
+        $this->object->{$primitive->getName()} = $value;
 
         return $this;
     }
