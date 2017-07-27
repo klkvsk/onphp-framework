@@ -53,7 +53,7 @@
 			
 			Assert::isFalse(
 				isset($this->primitives[$name]),
-				'i am already exists!'
+				'"' . $name . '" already exists!'
 			);
 			
 			$this->primitives[$name] = $prm;
