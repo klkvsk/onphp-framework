@@ -76,7 +76,12 @@
 			
 			return $this->unite($object, $old);
 		}
-		
+
+        /**
+         * @param Identifiable|Prototyped $object
+         * @param Identifiable $old
+         * @return Identifiable
+         */
 		public function unite(
 			Identifiable $object, Identifiable $old
 		)
@@ -116,6 +121,35 @@
 			
 			$this->targetizeUpdateQuery($query, $object);
 			
+			return $this->doInject($query, $object);
+		}
+
+        /**
+         * @param Identifiable|Prototyped $object
+         * @param array $propertyNames
+         * @return Identifiable
+         */
+		public function savePartial(
+			Identifiable $object, array $propertyNames
+		)
+		{
+			Assert::isNotNull($object->getId());
+
+			if (empty($propertyNames)) {
+			    return $object;
+            }
+
+            $this->runTrigger($object, 'onBeforeSave');
+
+            $query = OSQL::update($this->getTable());
+
+			foreach ($propertyNames as $propertyName) {
+			    $property = $this->getProtoClass()->getPropertyByName($propertyName);
+                $property->fillQuery($query, $object);
+			}
+
+			$this->targetizeUpdateQuery($query, $object);
+
 			return $this->doInject($query, $object);
 		}
 		

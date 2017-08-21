@@ -131,6 +131,9 @@
 			return self::fetchEncapsulants($object);
 		}
 
+        /**
+         * @return LightMetaProperty[]
+         */
 		final public function getPropertyList()
 		{
 			static $lists = array();
