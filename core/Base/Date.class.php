@@ -37,7 +37,7 @@ class Date implements Stringable, DialectString
 	protected $int = null;
 
 	/**
-	 * @return Date
+	 * @return static
 	 **/
 	public static function create($date)
 	{
@@ -210,7 +210,7 @@ class Date implements Stringable, DialectString
 
 	/**
 	 * @throws WrongArgumentException
-	 * @return Date
+	 * @return $this
 	 **/
 	public function modify($string)
 	{
@@ -248,7 +248,7 @@ class Date implements Stringable, DialectString
 	}
 
 	/**
-	 * @return Date
+	 * @return static
 	 **/
 	public function getFirstDayOfWeek($weekStart = Date::WEEKDAY_MONDAY)
 	{
@@ -258,7 +258,7 @@ class Date implements Stringable, DialectString
 	}
 
 	/**
-	 * @return Date
+	 * @return static
 	 **/
 	public function getLastDayOfWeek($weekStart = Date::WEEKDAY_MONDAY)
 	{
