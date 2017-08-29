@@ -159,8 +159,14 @@
         {
             if ($this->is(self::SVG)) {
                 $xml = simplexml_load_file($filename);
-                $width  = (int)$xml['width'];
-                $height = (int)$xml['height'];
+                if ($xml['viewBox']) {
+                    list($x, $y, $width, $height) = explode(' ', (string)$xml['viewBox']);
+                    $width = (int)$width;
+                    $height = (int)$height;
+                } else {
+                    $width  = (int)$xml['width'];
+                    $height = (int)$xml['height'];
+                }
             } else {
                 list($width, $height) = getimagesize($filename);
             }
