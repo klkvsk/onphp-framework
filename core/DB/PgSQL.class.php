@@ -106,7 +106,7 @@
 		/**
 		 * @return PgSQL
 		**/
-		protected function setDbEncoding()
+		public function setDbEncoding()
 		{
 			pg_set_client_encoding($this->link, $this->encoding);
 
