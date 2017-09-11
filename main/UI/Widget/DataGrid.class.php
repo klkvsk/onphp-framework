@@ -191,7 +191,8 @@ class DataGrid extends BaseWidget
                 $fieldIds = array_keys($row);
                 break;
 
-            case $varsData = get_object_vars($data):
+            case is_object($data):
+                $varsData = get_object_vars($data);
                 $fieldIds = array_keys($varsData);
                 $this->objects[$rowId] = $data;
                 $row = $varsData;
