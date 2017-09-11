@@ -65,7 +65,7 @@ class DataGrid extends BaseWidget
 
 	/** @var string текстовый вывод булевого типа */
 	public $falseName = null;
-    
+
     /** @var array аттрибуты строки таблицы */
     public $rowAttrs = array();
 
@@ -148,7 +148,7 @@ class DataGrid extends BaseWidget
 	 */
     public function addRow($data, $key=null) {
         $rowId = count($this->rows); // id следующей строки
-		if( isset($key) && $key=='total' ) {
+		if( isset($key) && $key==='total' ) {
 			$this->totalId = $rowId;
 		}
 
@@ -156,24 +156,22 @@ class DataGrid extends BaseWidget
         // и через геттеры получаем все параметры, а если
         // это массив, то берем его как есть.
 
-        if ($data instanceof Prototyped) {
-			if (
-				$data instanceof TranslatableObject
-				&& is_null($this->localizedFields)
-			) {
-				$dataProto = $data->proto();
-				if ($dataProto instanceof ProtoTranslatableObject) {
-					$this->localizedFields = $dataProto->getTranslatablePropertyNames();
-				}
-			}
+        switch (true) {
+            case $data instanceof Prototyped:
+                if ($data instanceof TranslatableObject && is_null($this->localizedFields)) {
+                    $dataProto = $data->proto();
+                    if ($dataProto instanceof ProtoTranslatableObject) {
+                        $this->localizedFields = $dataProto->getTranslatablePropertyNames();
+                    }
+                }
 
-            /** @var $data Prototyped */
-            $this->objects[$rowId] = $data;
-            $fieldIds = array();
+                /** @var $data Prototyped */
+                $this->objects[$rowId] = $data;
+                $fieldIds = [];
 //			$this->rows[$rowId] = null;
-            $row = array();
-			/** @var $property LightMetaProperty */
-            foreach ($data->proto()->getPropertyList() as $property) {
+                $row = [];
+                /** @var $property LightMetaProperty */
+                foreach ($data->proto()->getPropertyList() as $property) {
 //                try {
 //					$value = $this->getPropertyValue($rowId, $property);
 //                } catch (BadMethodCallException $e) {
@@ -181,21 +179,35 @@ class DataGrid extends BaseWidget
 //                } catch (ObjectNotFoundException $e) {
 //					$value = null;
 //				}
-                $fieldIds[] = $property->getName();
-                $row[$property->getName()] = null;
+                    $fieldIds[] = $property->getName();
+                    $row[$property->getName()] = null;
 //				$value = null;
-            }
-        } else if (is_array($data)) {
-            $fieldIds = array_keys($data);
-			$this->objects[$rowId] = $data;
-			$row = $data;
-        } else if ($data instanceof NamedObject) {
-			$this->objects[$rowId] = $data;
-			$row = array('id' => $data->getId(), 'name' => $data->getName());
-			$fieldIds = array_keys($row);
-		} else {
-            throw new WrongArgumentException('$data should be either array or prototyped object');
+                }
+                break;
+
+            case $data instanceof NamedObject:
+                $this->objects[$rowId] = $data;
+                $row = ['id' => $data->getId(), 'name' => $data->getName()];
+                $fieldIds = array_keys($row);
+                break;
+
+            case $varsData = get_object_vars($data):
+                $fieldIds = array_keys($varsData);
+                $this->objects[$rowId] = $data;
+                $row = $varsData;
+                break;
+
+            case is_array($data):
+                $fieldIds = array_keys($data);
+                $this->objects[$rowId] = $data;
+                $row = $data;
+                break;
+
+            default:
+                throw new WrongArgumentException('$data should be either array, Prototyped/NamedObject instance or object with public properties or prototyped object');
+                break;
         }
+
         // сохраним в список сортируемых полей
         foreach ($fieldIds as $fieldId) {
             if (!in_array($fieldId, $this->sortingFields)) {
@@ -252,7 +264,7 @@ class DataGrid extends BaseWidget
                     if ($object instanceof Prototyped) {
 						$property = $object->proto()->getPropertyByName($fieldId);
                     }
-                    
+
                 }
 
 				if ($property instanceof LightMetaProperty) {
@@ -925,58 +937,70 @@ class DataGrid extends BaseWidget
 		$this->form = $form;
 		return $this;
 	}
-    
+
     /**
      *
      * @param array $rowAttrs
-     * @return DataGrid 
+     * @return DataGrid
      */
     public function setRowAttrs($rowAttrs) {
         $this->rowAttrs = $rowAttrs;
         return $this;
-    } 
+    }
 
     /**
      * @return Model
      */
     protected function makeModel() {
         $data = array();
-        
+
         if (empty($this->rowAttrs['class'])) {
             $this->rowAttrs['class'] = '';
         }
-        
+
         // рендерим данные
         foreach ($this->rows as $rowId => $row) {
             $object = isset($this->objects[$rowId]) ? $this->objects[$rowId] : $this->rows[$rowId];
             foreach ($this->fields as $fieldId => $fieldName) {
-				$fieldPath = explode('.', $fieldId);
-				$field = $object;
-				foreach ($fieldPath as $fieldPathPart) {
-					if ($field instanceof Prototyped && PrototypeUtils::hasProperty($field, $fieldPathPart)) {
-						$field = PrototypeUtils::getValue($field, $fieldPathPart);
-					} elseif ($field instanceof NamedObject && $fieldPathPart == 'name') {
-						$field = $field->getName();
-					} elseif ($field instanceof Identifiable && $fieldPathPart == 'id') {
-						$field = $field->getId();
-					} elseif (is_array($field) && isset($field[$fieldPathPart])) {
-						$field = $field[$fieldPathPart];
-					} else {
-						$field = null;
-						break;
-					}
-				}
+                $fieldPath = explode('.', $fieldId);
+                $field = $object;
+                foreach ($fieldPath as $fieldPathPart) {
+                    switch (true) {
+                        case $field instanceof Prototyped && PrototypeUtils::hasProperty($field, $fieldPathPart):
+                            $field = PrototypeUtils::getValue($field, $fieldPathPart);
+                            break;
 
-				if ($this->form instanceof Form	&& $this->form->exists($fieldId)) {
-					if ($this->form->hasError($fieldId)) {
-						$field = $this->form->get($fieldId)->getRawValue();
-					}
-					else if ($this->form->get($fieldId)->isImported()) {
-						$field = $this->form->get($fieldId)->getValue();
-					}
-				}
+                        case $field instanceof NamedObject && $fieldPathPart === 'name':
+                            $field = $field->getName();
+                            break;
 
-				// если есть рендерер, прогоним значение через него
+                        case $field instanceof Identifiable && $fieldPathPart === 'id':
+                            $field = $field->getId();
+                            break;
+
+                        case is_object($field):
+                            $field = property_exists($field, $fieldPathPart) ? $field->{$fieldPathPart} : null;
+                            break;
+
+                        case is_array($field) && isset($field[$fieldPathPart]):
+                            $field = $field[$fieldPathPart];
+                            break;
+
+                        default:
+                            $field = null;
+                            break;
+                    }
+                }
+
+                if ($this->form instanceof Form && $this->form->exists($fieldId)) {
+                    if ($this->form->hasError($fieldId)) {
+                        $field = $this->form->get($fieldId)->getRawValue();
+                    } else if ($this->form->get($fieldId)->isImported()) {
+                        $field = $this->form->get($fieldId)->getValue();
+                    }
+                }
+
+                // если есть рендерер, прогоним значение через него
                 if (isset($this->renderers[$fieldId])) {
                     $callback = $this->renderers[$fieldId];
                     if ($this->renderers[$fieldId] instanceof Closure) {
@@ -987,9 +1011,9 @@ class DataGrid extends BaseWidget
                 }
                 $data[$rowId][$fieldId] = $field;
             }
-            
+
             $attrs = array();
-            
+
             foreach ($this->rowAttrs as $key => $value) {
                 if ($value instanceof Closure) {
                     $value = $value($object);
