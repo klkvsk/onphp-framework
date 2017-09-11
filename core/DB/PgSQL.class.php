@@ -24,7 +24,7 @@
 		/**
 		 * @return PostgresDialect
 		**/
-		public function getDialect()
+		public static function getDialect()
 		{
 			return PostgresDialect::me();
 		}
