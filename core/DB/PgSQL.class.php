@@ -18,10 +18,13 @@
 	**/
 	class PgSQL extends DB
 	{
+	    /** @var null|int seconds  */
+	    protected $connectTimeout = null;
+
 		/**
 		 * @return PostgresDialect
 		**/
-		public static function getDialect()
+		public function getDialect()
 		{
 			return PostgresDialect::me();
 		}
@@ -35,7 +38,8 @@
 				"host={$this->hostname} user={$this->username}"
 				.($this->password ? " password={$this->password}" : null)
 				.($this->basename ? " dbname={$this->basename}" : null)
-				.($this->port ? " port={$this->port}" : null);
+				.($this->port ? " port={$this->port}" : null)
+                .($this->connectTimeout ? " connect_timeout={$this->connectTimeout}" : null);
 
 			if ($this->persistent)
 				$this->link = pg_pconnect($conn);
@@ -102,7 +106,7 @@
 		/**
 		 * @return PgSQL
 		**/
-		public function setDbEncoding()
+		protected function setDbEncoding()
 		{
 			pg_set_client_encoding($this->link, $this->encoding);
 
@@ -332,5 +336,23 @@
 
 			return $result;
 		}
-	}
+
+        /**
+         * @return null|int
+         */
+        public function getConnectTimeout()
+        {
+            return $this->connectTimeout;
+        }
+
+        /**
+         * @param int $connectTimeout
+         * @return PgSQL
+         */
+        public function setConnectTimeout($connectTimeout)
+        {
+            $this->connectTimeout = $connectTimeout;
+            return $this;
+        }
+    }
 ?>
