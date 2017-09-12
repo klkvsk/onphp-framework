@@ -142,12 +142,23 @@ class PrototypeUtils
     }
 
 	public static function hasProperty(Prototyped $object, $path) {
-		try {
-			self::getValue($object, $path);
-			return true;
-		} catch (ObjectNotFoundException $e) {
-			return false;
-		}
+        $parts = preg_split('/[\\:\\.]/', $path, 2);
+        $field = $parts[0];
+        $tail = isset($parts[1]) ? $parts[1] : null;
+        try {
+            $property = $object::proto()->getPropertyByName($field);
+            $getter = $property->getGetter();
+        } catch (MissingElementException $e) {
+            $getter = 'get' . ucfirst($field);
+        }
+
+        if (!method_exists($object, $getter)) {
+            return false;
+        } else if ($tail) {
+            return self::hasProperty($object->$getter(), $tail);
+        } else {
+            return true;
+        }
 	}
 
     public static function getOwner(Prototyped $object, $path) {
