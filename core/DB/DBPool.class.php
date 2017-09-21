@@ -97,10 +97,11 @@
 
         /**
          * @param null $name
+         * @param bool $connect
          * @return DBInterface
          * @throws MissingElementException
          */
-		public function getLink($name = null)
+		public function getLink($name = null, $connect = true)
 		{
 			$link = null;
 
@@ -116,7 +117,7 @@
 				$link = $this->pool[$name];
 
 			if ($link) {
-				if (!$link->isConnected())
+				if ($connect && !$link->isConnected())
 					$link->connect();
 
 				return $link;
