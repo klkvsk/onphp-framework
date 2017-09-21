@@ -43,6 +43,8 @@
                     break;
 
                 case 'AND':
+                case '':
+                case null:
                     $this->where->expAnd($exp);
                     break;
 
