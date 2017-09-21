@@ -40,9 +40,9 @@ class RangedSharding implements ShardingStrategy
         }
         if ($chain instanceof LogicalChain) {
             $range = $this->extractRangesFromLogic($chain);
-            if (__LOCAL_DEBUG__ && $range->getMin() === null && $range->getMax() === null) {
-                //throw new WrongArgumentException('query does not include sharding key: ' . $query->toString());
-            }
+            //if (__LOCAL_DEBUG__ && $range->getMin() === null && $range->getMax() === null) {
+            //    //throw new WrongArgumentException('query does not include sharding key: ' . $query->toString());
+            //}
             $shards = $this->chooseShards($range);
             return $shards;
         }
