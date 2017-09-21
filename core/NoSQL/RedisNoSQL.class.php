@@ -11,311 +11,309 @@
 
 final class RedisNoSQL extends CachePeer implements ListGenerator
 {
-	const DEFAULT_HOST = 'localhost';
-	const DEFAULT_PORT = '6379';
-	const DEFAULT_TIMEOUT = 1.0;
+    const DEFAULT_HOST = 'localhost';
+    const DEFAULT_PORT = '6379';
+    const DEFAULT_TIMEOUT = 1.0;
 
-	private $redis			= null;
-	private $host			= null;
-	private $port			= null;
-	private $timeout		= null;
-	private $triedConnect	= false;
+    /** @var Redis */
+    private $redis = null;
+    private $host = null;
+    private $port = null;
+    private $timeout = null;
+    private $triedConnect = false;
 
-	/**
-	 * @param type $host
-	 * @param type $port
-	 * @param type $timeout
-	 * @return RedisNoSQL
-	 */
-	public static function create(
-		$host = self::DEFAULT_HOST,
-		$port = self::DEFAULT_PORT,
-		$timeout = self::DEFAULT_TIMEOUT,
-		$db = 0
-	)
-	{
-		$instance = new self($host, $port, $timeout);
-		$instance->select($db);
-		return $instance;
-	}
+    /**
+     * @param string $host
+     * @param int $port
+     * @param double $timeout
+     * @return RedisNoSQL
+     */
+    public static function create(
+        $host = self::DEFAULT_HOST,
+        $port = self::DEFAULT_PORT,
+        $timeout = self::DEFAULT_TIMEOUT,
+        $db = 0
+    )
+    {
+        $instance = new self($host, $port, $timeout);
+        $instance->select($db);
+        return $instance;
+    }
 
-	public function __construct(
-		$host = self::DEFAULT_HOST,
-		$port = self::DEFAULT_PORT,
-		$timeout = self::DEFAULT_TIMEOUT
-	)
-	{
-		$this->host		= $host;
-		$this->port		= $port;
-		$this->timeout	= $timeout;
-	}
+    public function __construct(
+        $host = self::DEFAULT_HOST,
+        $port = self::DEFAULT_PORT,
+        $timeout = self::DEFAULT_TIMEOUT
+    )
+    {
+        $this->host = $host;
+        $this->port = $port;
+        $this->timeout = $timeout;
+    }
 
-	public function __destruct()
-	{
-		if ($this->alive) {
-			try {
-				$this->redis->close();		//if pconnect - it will be ignored
-			} catch (RedisException $e) {
-				// shhhh.
-			}
-		}
-	}
+    public function __destruct()
+    {
+        if ($this->alive) {
+            try {
+                $this->redis->close();        //if pconnect - it will be ignored
+            } catch (RedisException $e) {
+                // shhhh.
+            }
+        }
+    }
 
-	public function clean()
-	{
+    public function clean()
+    {
         /** @var Profiling $profiling */
         $profiling = Profiling::create(array('cache', 'redis'))->begin();
-		$this->ensureTriedToConnect();
+        $this->ensureTriedToConnect();
 
-		try {
-			$this->redis->flushDB();
+        try {
+            $this->redis->flushDB();
             $profiling
                 ->setInfo('clean')
-                ->end()
-            ;
-		} catch (RedisException $e) {
-			$this->alive = false;
-		}
+                ->end();
+        } catch (RedisException $e) {
+            $this->alive = false;
+        }
 
-		return parent::clean();
-	}
+        return parent::clean();
+    }
 
-	public function isAlive()
-	{
-		$this->ensureTriedToConnect();
+    public function isAlive()
+    {
+        $this->ensureTriedToConnect();
 
-		try {
-			$this->alive = $this->redis->ping() == '+PONG';
-		} catch (RedisException $e) {
-			$this->alive = false;
-		}
+        try {
+            $this->alive = $this->redis->ping() == '+PONG';
+        } catch (RedisException $e) {
+            $this->alive = false;
+        }
 
-		return parent::isAlive();
-	}
+        return parent::isAlive();
+    }
 
-	public function append($key, $data)
-	{
+    public function append($key, $data)
+    {
         /** @var Profiling $profiling */
         $profiling = Profiling::create(array('cache', 'redis'))->begin();
-		$this->ensureTriedToConnect();
+        $this->ensureTriedToConnect();
 
-		try {
-			$response = $this->redis->append($key, $data);
+        try {
+            $response = $this->redis->append($key, $data);
             $profiling
                 ->setInfo('append ' . $key)
-                ->end()
-            ;
-			return $response;
-		} catch (RedisException $e) {
-			return $this->alive = false;
-		}
-	}
+                ->end();
+            return $response;
+        } catch (RedisException $e) {
+            return $this->alive = false;
+        }
+    }
 
-	public function decrement($key, $value)
-	{
+    public function decrement($key, $value)
+    {
         /** @var Profiling $profiling */
         $profiling = Profiling::create(array('cache', 'redis'))->begin();
-		$this->ensureTriedToConnect();
+        $this->ensureTriedToConnect();
 
-		try {
+        try {
             $response = $this->redis->decrBy($key, $value);
             $profiling
                 ->setInfo('decrement ' . $key)
-                ->end()
-            ;
+                ->end();
             return $response;
-		} catch (RedisException $e) {
-			return null;
-		}
-	}
+        } catch (RedisException $e) {
+            return null;
+        }
+    }
 
-	public function delete($key)
-	{
+    public function delete($key)
+    {
         /** @var Profiling $profiling */
         $profiling = Profiling::create(array('cache', 'redis'))->begin();
-		$this->ensureTriedToConnect();
+        $this->ensureTriedToConnect();
 
-		try {
+        try {
             $response = $this->redis->delete($key);
             $profiling
                 ->setInfo('delete ' . $key)
-                ->end()
-            ;
+                ->end();
             return $response;
-		} catch (RedisException $e) {
-			return $this->alive = false;
-		}
-	}
+        } catch (RedisException $e) {
+            return $this->alive = false;
+        }
+    }
 
-	public function get($key)
-	{
+    public function get($key)
+    {
         /** @var Profiling $profiling */
         $profiling = Profiling::create(array('cache', 'redis'))->begin();
-		$this->ensureTriedToConnect();
+        $this->ensureTriedToConnect();
 
-		try {
+        try {
             $response = $this->redis->get($key);
             $profiling
                 ->setInfo('get ' . $key)
-                ->end()
-            ;
+                ->end();
             return $response;
-		} catch (RedisException $e) {
-			$this->alive = false;
+        } catch (RedisException $e) {
+            $this->alive = false;
 
-			return null;
-		}
-	}
+            return null;
+        }
+    }
 
-	public function keys($mask = null)
-	{
+    public function keys($mask = null)
+    {
         /** @var Profiling $profiling */
         $profiling = Profiling::create(array('cache', 'redis'))->begin();
-		$this->ensureTriedToConnect();
+        $this->ensureTriedToConnect();
 
         if (!$mask)
             $mask = '*';
 
-		try {
+        try {
             $response = $this->redis->keys($mask);
             $profiling
                 ->setInfo('keys ' . $mask)
-                ->end()
-            ;
+                ->end();
             return $response;
-		} catch (RedisException $e) {
-			$this->alive = false;
+        } catch (RedisException $e) {
+            $this->alive = false;
 
-			return null;
-		}
-	}
+            return null;
+        }
+    }
 
-	public function increment($key, $value)
-	{
+    public function increment($key, $value)
+    {
         /** @var Profiling $profiling */
         $profiling = Profiling::create(array('cache', 'redis'))->begin();
-		$this->ensureTriedToConnect();
+        $this->ensureTriedToConnect();
 
-		try {
+        try {
             $response = $this->redis->incrBy($key, $value);
             $profiling
                 ->setInfo('increment ' . $key)
-                ->end()
-            ;
+                ->end();
             return $response;
-		} catch (RedisException $e) {
-			return null;
-		}
-	}
+        } catch (RedisException $e) {
+            return null;
+        }
+    }
 
-	/**
-	 * @param string $key
-	 *
-	 * @return RedisNoSQLList
-	 */
-	public function fetchList($key, $timeout = null)
-	{
-		$this->ensureTriedToConnect();
+    /**
+     * @param string $key
+     *
+     * @return RedisNoSQLList
+     */
+    public function fetchList($key, $timeout = null)
+    {
+        $this->ensureTriedToConnect();
 
-		return new RedisNoSQLList($this->redis, $key, $timeout);
-	}
+        return new RedisNoSQLList($this->redis, $key, $timeout);
+    }
 
-	/**
-	 * @param string $key
-	 *
-	 * @return RedisNoSQLSet
-	 */
-	public function fetchSet($key)
-	{
-		throw new UnimplementedFeatureException();
-	}
+    /**
+     * @param string $key
+     *
+     * @return RedisNoSQLSet
+     */
+    public function fetchSet($key)
+    {
+        throw new UnimplementedFeatureException();
+    }
 
-	/**
-	 * @param string $key
-	 *
-	 * @return RedisNoSQLHash
-	 */
-	public function fetchHash($key)
-	{
-		throw new UnimplementedFeatureException();
-	}
+    /**
+     * @param string $key
+     *
+     * @return RedisNoSQLHash
+     */
+    public function fetchHash($key)
+    {
+        throw new UnimplementedFeatureException();
+    }
 
-	public function info() {
+    public function info()
+    {
         /** @var Profiling $profiling */
         $profiling = Profiling::create(array('cache', 'redis'))->begin();
         $response = $this->redis->info();
         $profiling
             ->setInfo('info')
-            ->end()
-        ;
+            ->end();
         return $response;
-	}
+    }
 
-	public function select($db) {
+    public function select($db)
+    {
         /** @var Profiling $profiling */
         $profiling = Profiling::create(array('cache', 'redis'))->begin();
-		$this->ensureTriedToConnect();
+        $this->ensureTriedToConnect();
 
-		if( is_null($db) || !Assert::checkInteger($db) ) {
-			throw new WrongArgumentException('DB id should be an integer');
-		}
-		$result = $this->redis->select($db);
-		if( !$result ) {
-			throw new WrongStateException('could not change db');
-		}
+        if (is_null($db) || !Assert::checkInteger($db)) {
+            throw new WrongArgumentException('DB id should be an integer');
+        }
+        $result = $this->redis->select($db);
+        if (!$result) {
+            throw new WrongStateException('could not change db');
+        }
         $profiling
             ->setInfo('select ' . $db)
-            ->end()
-        ;
-		return $result;
-	}
+            ->end();
+        return $result;
+    }
 
-	protected function store($action, $key, $value, $expires = Cache::EXPIRES_MEDIUM)
-	{
+    protected function store($action, $key, $value, $expires = Cache::EXPIRES_MEDIUM)
+    {
         /** @var Profiling $profiling */
         $profiling = Profiling::create(array('cache', 'redis'))->begin();
-		$this->ensureTriedToConnect();
+        $this->ensureTriedToConnect();
 
-		switch ($action) {
-			case 'set':
-			case 'replace':
-			case 'add':
-				try {
-					$result = $this->redis->set($key, $value, $expires);
+        switch ($action) {
+            case 'set':
+            case 'replace':
+            case 'add':
+                try {
+                    $method = ($action == 'add') ? 'setnx' : 'set';
+                    $result = $this->redis->{$method}($key, $value);
+                    if ($result !== false) {
+                        $this->redis->expire($key, $expires);
+                    }
                     $profiling
                         ->setInfo($action . ' ' . $key)
-                        ->end()
-                    ;
-					return $result;
-				} catch (RedisException $e) {
-					return $this->alive = false;
-				}
+                        ->end();
+                    return $result;
+                } catch (RedisException $e) {
+                    return $this->alive = false;
+                }
 
-			default:
-				throw new UnimplementedFeatureException();
-		}
-	}
+            default:
+                throw new UnimplementedFeatureException();
+        }
+    }
 
-	protected function ensureTriedToConnect()
-	{
-		if ($this->triedConnect)
-			return $this;
+    protected function ensureTriedToConnect()
+    {
+        if ($this->triedConnect)
+            return $this;
 
-		$this->triedConnect = true;
+        $this->triedConnect = true;
 
-		$this->redis = new Redis();
+        $this->redis = new Redis();
 
-		try {
-			$this->redis->pconnect($this->host, $this->port, $this->timeout);
-			$this->isAlive();
-		} catch (RedisException $e) {
-			$this->alive = false;
-		}
+        try {
+            $this->redis->pconnect($this->host, $this->port, $this->timeout);
+            $this->isAlive();
+        } catch (RedisException $e) {
+            $this->alive = false;
+        }
 
-		return $this;
-	}
+        return $this;
+    }
 
-    public function deleteList(array $keys) {
+    public function deleteList(array $keys)
+    {
 
         $this->ensureTriedToConnect();
 
@@ -326,7 +324,8 @@ final class RedisNoSQL extends CachePeer implements ListGenerator
         }
     }
 
-    public function deleteByPattern($pattern) {
+    public function deleteByPattern($pattern)
+    {
 
         $this->ensureTriedToConnect();
 
@@ -341,31 +340,34 @@ final class RedisNoSQL extends CachePeer implements ListGenerator
         }
     }
 
-	public function multi() {
-		$this->ensureTriedToConnect();
-		try {
-			return $this->redis->multi();
-		} catch (RedisException $e) {
-			return $this->alive = false;
-		}
-	}
+    public function multi()
+    {
+        $this->ensureTriedToConnect();
+        try {
+            return $this->redis->multi();
+        } catch (RedisException $e) {
+            return $this->alive = false;
+        }
+    }
 
-	public function exec() {
-		$this->ensureTriedToConnect();
-		try {
-			return $this->redis->exec();
-		} catch (RedisException $e) {
-			return $this->alive = false;
-		}
-	}
+    public function exec()
+    {
+        $this->ensureTriedToConnect();
+        try {
+            return $this->redis->exec();
+        } catch (RedisException $e) {
+            return $this->alive = false;
+        }
+    }
 
-	public function discard() {
-		$this->ensureTriedToConnect();
-		try {
-			return $this->redis->discard();
-		} catch (RedisException $e) {
-			return $this->alive = false;
-		}
-	}
+    public function discard()
+    {
+        $this->ensureTriedToConnect();
+        try {
+            return $this->redis->discard();
+        } catch (RedisException $e) {
+            return $this->alive = false;
+        }
+    }
 
 }

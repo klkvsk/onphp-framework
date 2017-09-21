@@ -16,22 +16,25 @@
 	**/
 	abstract class BaseTransaction
 	{
+	    /** @var DBInterface|null  */
 		protected $db		= null;
-		
+		/** @var IsolationLevel|null  */
 		protected $isoLevel	= null;
+		/** @var AccessMode|null  */
 		protected $mode		= null;
 		
 		abstract public function flush();
 		
-		public function __construct(DB $db)
+		public function __construct(DBInterface $db)
 		{
 			$this->db = $db;
 		}
-		
-		/**
-		 * @return BaseTransaction
-		**/
-		public function setDB(DB $db)
+
+        /**
+         * @param DBInterface $db
+         * @return $this
+         */
+		public function setDB(DBInterface $db)
 		{
 			$this->db = $db;
 			
@@ -39,33 +42,38 @@
 		}
 		
 		/**
-		 * @return DB
+		 * @return DBInterface
 		**/
 		public function getDB()
 		{
 			return $this->db;
 		}
-		
-		/**
-		 * @return BaseTransaction
-		**/
+
+        /**
+         * @param IsolationLevel $level
+         * @return $this
+         */
 		public function setIsolationLevel(IsolationLevel $level)
 		{
 			$this->isoLevel = $level;
 			
 			return $this;
 		}
-		
-		/**
-		 * @return BaseTransaction
-		**/
+
+        /**
+         * @param AccessMode $mode
+         * @return $this
+         */
 		public function setAccessMode(AccessMode $mode)
 		{
 			$this->mode = $mode;
 			
 			return $this;
 		}
-		
+
+        /**
+         * @return string
+         */
 		protected function getBeginString()
 		{
 			$begin = 'start transaction';

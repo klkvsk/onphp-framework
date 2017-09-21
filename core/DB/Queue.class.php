@@ -45,19 +45,22 @@
 			return $this->queue;
 		}
 
-		/**
-		 * @return Queue
-		**/
+        /**
+         * @param Query $query
+         * @return Queue
+         */
 		public function add(Query $query)
 		{
 			$this->queue[] = $query;
 			
 			return $this;
 		}
-		
-		/**
-		 * @return Queue
-		**/
+
+        /**
+         * @param Query $query
+         * @return $this
+         * @throws MissingElementException
+         */
 		public function remove(Query $query)
 		{
 			if (!$id = array_search($query, $this->queue))
@@ -77,21 +80,23 @@
 			
 			return $this;
 		}
-		
-		/**
-		 * @return Queue
-		**/
-		public function run(DB $db)
+
+        /**
+         * @param DBInterface $db
+         * @return $this
+         */
+		public function run(DBInterface $db)
 		{
 			$db->queryRaw($this->toDialectString($db->getDialect()));
 			
 			return $this;
 		}
-		
-		/**
-		 * @return Queue
-		**/
-		public function flush(DB $db)
+
+        /**
+         * @param DBInterface $db
+         * @return $this
+         */
+		public function flush(DBInterface $db)
 		{
 			return $this->run($db)->drop();
 		}

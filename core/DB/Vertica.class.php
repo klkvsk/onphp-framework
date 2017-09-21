@@ -7,7 +7,7 @@
 
 class Vertica extends PgSQL {
 
-	public static function getDialect() {
+	public function getDialect() {
 		return VerticaDialect::me();
 	}
 

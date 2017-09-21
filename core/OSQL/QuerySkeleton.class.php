@@ -14,19 +14,16 @@
 	**/
 	abstract class QuerySkeleton extends QueryIdentification
 	{
-		protected $where		= array();	// where clauses
-		protected $whereLogic	= array();	// logic between where's
+		protected $where		= null;
 		protected $aliases		= array();
 		protected $returning 	= array();
-		
+
+        /**
+         * @return LogicalChain|null
+         */
 		public function getWhere()
 		{
 			return $this->where;
-		}
-		
-		public function getWhereLogic()
-		{
-			return $this->whereLogic;
 		}
 
         /**
@@ -37,32 +34,39 @@
          */
 		public function where(LogicalObject $exp, $logic = null)
 		{
-			if ($this->where && !$logic)
-				throw new WrongArgumentException(
-					'you have to specify expression logic'
-				);
-			else {
-				if (!$this->where && $logic)
-					$logic = null;
-				
-				$this->whereLogic[] = $logic;
-				$this->where[] = $exp;
-			}
-			
+			if (!$this->where) {
+			    $this->where = new LogicalChain();
+            }
+            switch ($logic) {
+                case 'OR':
+                    $this->where->expOr($exp);
+                    break;
+
+                case 'AND':
+                    $this->where->expAnd($exp);
+                    break;
+
+                default:
+                    throw new WrongArgumentException($logic);
+            }
 			return $this;
 		}
-		
-		/**
-		 * @return $this
-		**/
+
+        /**
+         * @param LogicalObject $exp
+         * @return $this
+         * @throws WrongArgumentException
+         */
 		public function andWhere(LogicalObject $exp)
 		{
 			return $this->where($exp, 'AND');
 		}
-		
-		/**
-		 * @return $this
-		**/
+
+        /**
+         * @param LogicalObject $exp
+         * @return $this
+         * @throws WrongArgumentException
+         */
 		public function orWhere(LogicalObject $exp)
 		{
 			return $this->where($exp, 'OR');
@@ -96,29 +100,16 @@
 			
 			return $this;
 		}
-		
+
+        /**
+         * @param Dialect $dialect
+         * @return string
+         */
 		public function toDialectString(Dialect $dialect)
 		{
-			if ($this->where) {
-				$clause = ' WHERE';
-				$outputLogic = false;
-				
-				for ($i = 0, $size = count($this->where); $i < $size; ++$i) {
-					
-					if ($exp = $this->where[$i]->toDialectString($dialect)) {
-						
-						$clause .= "{$this->whereLogic[$i]} {$exp} ";
-						$outputLogic = true;
-						
-					} elseif (!$outputLogic && isset($this->whereLogic[$i + 1]))
-						$this->whereLogic[$i + 1] = null;
-					
-				}
-				
-				return rtrim($clause, ' ');
-			}
-			
-			return null;
+			return $this->getWhere()
+                ? ' WHERE ' . $this->getWhere()->toDialectString($dialect)
+                : '';
 		}
 		
 		protected function resolveSelectField($field, $alias, $table)

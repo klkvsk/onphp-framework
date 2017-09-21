@@ -12,7 +12,7 @@ final class Cursor implements Iterator {
 	/** @var SelectQuery */
 	protected $selectQuery = null;
 
-	/** @var DB */
+	/** @var DBInterface */
 	protected $db = null;
 
 	/** @var string */
@@ -50,7 +50,7 @@ final class Cursor implements Iterator {
 	}
 
 	function __destruct() {
-		if( $this->db->inTransaction() && is_resource($this->db->getLink()) ) {
+		if( $this->db->inTransaction() && $this->db->isConnected() ) {
 			$this->closeCursor();
 			$this->closeTransaction();
 		}
@@ -58,7 +58,6 @@ final class Cursor implements Iterator {
 
 	public function __clone()
 	{
-		$this->dao = clone $this->dao;
 		$this->selectQuery = clone $this->selectQuery;
 	}
 
@@ -180,7 +179,7 @@ final class Cursor implements Iterator {
 
 	protected function fetchRow() {
 		if( empty($this->buffer) ) {
-			$resource = $this->db->queryRaw('FETCH FORWARD 250 FROM '.$this->getCursorName());
+			$resource = $this->db->queryRaw('FETCH FORWARD '.$this->batchSize.' FROM '.$this->getCursorName());
 			$this->buffer = pg_fetch_all($resource);
 		}
 		if( !$this->buffer ) {

@@ -16,6 +16,7 @@
 	**/
 	final class DBTransaction extends BaseTransaction
 	{
+	    /** @var bool */
 		private $started	= false;
 		
 		public function __destruct()
@@ -23,11 +24,13 @@
 			if ($this->isStarted())
 				$this->db->queryRaw("rollback;\n");
 		}
-		
-		/**
-		 * @return DBTransaction
-		**/
-		public function setDB(DB $db)
+
+        /**
+         * @param DBInterface $db
+         * @return $this
+         * @throws WrongStateException
+         */
+		public function setDB(DBInterface $db)
 		{
 			if ($this->isStarted())
 				throw new WrongStateException(
@@ -36,14 +39,17 @@
 
 			return parent::setDB($db);
 		}
-		
+
+        /**
+         * @return bool
+         */
 		public function isStarted()
 		{
 			return $this->started;
 		}
 		
 		/**
-		 * @return DBTransaction
+		 * @return $this
 		**/
 		public function add(Query $query)
 		{
@@ -56,10 +62,12 @@
 			
 			return $this;
 		}
-		
-		/**
-		 * @return DBTransaction
-		**/
+
+        /**
+         * @return DBTransaction
+         *
+         * @throws DatabaseException
+         */
 		public function flush()
 		{
 			$this->started = false;

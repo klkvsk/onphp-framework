@@ -62,7 +62,10 @@
 		{
 			return reset($this->chain);
 		}
-		
+
+        /**
+         * @return OrderBy[]
+         */
 		public function getList()
 		{
 			return $this->chain;

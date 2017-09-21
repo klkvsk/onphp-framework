@@ -48,6 +48,22 @@
 		{
 			return "CAST ({$field} AS {$type})";
 		}
+
+        /**
+         * @param bool|Ternary $exists
+         * @return string
+         */
+        public function existsMode($exists)
+        {
+            if (! $exists instanceof Ternary) {
+                $exists = Ternary::create($exists);
+            }
+            return $exists->decide(
+                ' IF EXISTS',
+                ' IF NOT EXISTS',
+                ''
+            );
+		}
 		
 		public static function timeZone($exist = false)
 		{

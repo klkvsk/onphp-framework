@@ -80,7 +80,7 @@ abstract class NoSQL extends DB {
 		throw new UnsupportedMethodException('Can not execute queryCount in NoSQL');
 	}
 
-	public function setDbEncoding() {
+	protected function setDbEncoding() {
 		throw new UnsupportedMethodException('Can not set encoding in NoSQL');
 	}
 

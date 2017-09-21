@@ -18,14 +18,15 @@
 	**/
 	final class TransactionQueue extends BaseTransaction implements Query
 	{
+	    /** @var Queue|null */
 		private $queue = null;
 		
-		public function __construct(DB $db)
+		public function __construct(DBInterface $db)
 		{
 			parent::__construct($db);
 			$this->queue = new Queue();
 		}
-		
+
 		public function getId()
 		{
 			return sha1(serialize($this));
@@ -35,10 +36,11 @@
 		{
 			throw new UnsupportedMethodException();
 		}
-		
-		/**
-		 * @return TransactionQueue
-		**/
+
+        /**
+         * @param Query $query
+         * @return $this
+         */
 		public function add(Query $query)
 		{
 			$this->queue->add($query);
@@ -48,7 +50,7 @@
 		
 		/**
 		 * @throws DatabaseException
-		 * @return TransactionQueue
+		 * @return $this
 		**/
 		public function flush()
 		{

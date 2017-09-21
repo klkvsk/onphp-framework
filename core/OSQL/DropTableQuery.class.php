@@ -18,24 +18,29 @@
 		private $name		= null;
 		
 		private $cascade	= false;
-		
+
+		private $exists     = null;
+
 		public function getId()
 		{
 			throw new UnsupportedMethodException();
 		}
 		
-		public function __construct($name, $cascade = false)
+		public function __construct($name, $cascade = false, $ifExists = false)
 		{
 			$this->name = $name;
 			$this->cascade = (true === $cascade);
+			$this->exists = $ifExists ? true : null;
 		}
 		
 		public function toDialectString(Dialect $dialect)
 		{
 			return
-				'DROP TABLE '.$dialect->quoteTable($this->name)
-				.$dialect->dropTableMode($this->cascade)
-				.';';
+				'DROP TABLE'
+                . $dialect->existsMode($this->exists)
+                . ' ' . $dialect->quoteTable($this->name)
+				. $dialect->dropTableMode($this->cascade)
+				. ';';
 		}
 	}
 ?>

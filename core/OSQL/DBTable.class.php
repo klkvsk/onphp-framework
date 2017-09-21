@@ -33,7 +33,10 @@
 		{
 			$this->name = $name;
 		}
-		
+
+        /**
+         * @return DBColumn[]
+         */
 		public function getColumns()
 		{
 			return $this->columns;

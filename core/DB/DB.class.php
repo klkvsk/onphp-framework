@@ -14,7 +14,7 @@
 	 * 
 	 * @ingroup DB
 	**/
-	abstract class DB
+	abstract class DB implements DBInterface
 	{
 		const FULL_TEXT_AND		= 1;
 		const FULL_TEXT_OR		= 2;
@@ -41,21 +41,8 @@
 		private $queue			= array();
 		private $toQueue		= false;
 		
-		abstract public function connect();
-		abstract public function disconnect();
-		
-		abstract public function getTableInfo($table);
-
-		abstract public function queryRaw($queryString);
-
-		abstract public function queryRow(Query $query);
-		abstract public function querySet(Query $query);
-		abstract public function queryNumRows(Query $query);
-		abstract public function queryColumn(Query $query);
-		abstract public function queryCount(Query $query);
-		
 		// actually set's encoding
-		abstract public function setDbEncoding();
+		abstract protected function setDbEncoding();
 
 		public function __destruct()
 		{
@@ -72,7 +59,7 @@
 		 * @return Dialect
 		 * @throws UnimplementedFeatureException
 		 */
-		public static function getDialect()
+		public function getDialect()
 		{
 			throw new UnimplementedFeatureException('implement me, please');
 		}
@@ -107,16 +94,14 @@
 		
 		/**
 		 * transaction handling
-		 * @deprecated by Transaction class
 		**/
 		//@{
-		/**
-		 * @return DB
-		**/
-		public function begin(
-			/* IsolationLevel */ $level = null,
-			/* AccessMode */ $mode = null
-		)
+        /**
+         * @param IsolationLevel|null $level
+         * @param AccessMode|null $mode
+         * @return DB
+         */
+		public function begin(IsolationLevel $level = null, AccessMode $mode = null)
 		{
 			$begin = 'begin';
 			
@@ -388,6 +373,10 @@
 		public function setEncoding($encoding)
 		{
 			$this->encoding = $encoding;
+
+			if ($this->isConnected()) {
+			    $this->setDbEncoding();
+            }
 			
 			return $this;
 		}

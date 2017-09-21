@@ -69,9 +69,9 @@
 		/**
 		 * @return DropTableQuery
 		**/
-		public static function dropTable($name, $cascade = false)
+		public static function dropTable($name, $cascade = false, $ifExists = false)
 		{
-			return new DropTableQuery($name, $cascade);
+			return new DropTableQuery($name, $cascade, $ifExists);
 		}
 	}
 ?>

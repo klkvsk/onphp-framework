@@ -22,7 +22,7 @@
 		/**
 		 * @return MyImprovedDialect
 		**/
-		public static function getDialect()
+		public function getDialect()
 		{
 			return MyImprovedDialect::me();
 		}
@@ -30,7 +30,7 @@
 		/**
 		 * @return MySQLim
 		**/
-		public function setDbEncoding()
+		protected function setDbEncoding()
 		{
 			mysqli_set_charset($this->link, $this->encoding);
 			

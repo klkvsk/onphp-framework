@@ -24,7 +24,7 @@
 		/**
 		 * @return PostgresDialect
 		**/
-		public static function getDialect()
+		public function getDialect()
 		{
 			return PostgresDialect::me();
 		}
@@ -106,7 +106,7 @@
 		/**
 		 * @return PgSQL
 		**/
-		public function setDbEncoding()
+		protected function setDbEncoding()
 		{
 			pg_set_client_encoding($this->link, $this->encoding);
 

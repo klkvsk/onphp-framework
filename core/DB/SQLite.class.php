@@ -23,7 +23,7 @@
 		/**
 		 * @return LiteDialect
 		**/
-		public static function getDialect()
+		public function getDialect()
 		{
 			return LiteDialect::me();
 		}
@@ -67,7 +67,7 @@
 		 * misc
 		**/
 		
-		public function setDbEncoding()
+		protected function setDbEncoding()
 		{
 			throw new UnsupportedMethodException();
 		}

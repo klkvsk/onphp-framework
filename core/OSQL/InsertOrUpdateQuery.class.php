@@ -32,7 +32,12 @@
 		{
 			return count($this->fields);
 		}
-		
+
+		public function getFields()
+		{
+			return $this->fields;
+		}
+
 		/**
 		 * @return InsertOrUpdateQuery
 		**/

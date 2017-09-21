@@ -163,6 +163,14 @@
 			
 			return $this;
 		}
+
+        /**
+         * @return OrderChain
+         */
+        public function getOrderChain()
+        {
+            return $this->order;
+		}
 		
 		/**
 		 * @return SelectQuery
@@ -234,7 +242,15 @@
 			$this->group = array();
 			return $this;
 		}
-		
+
+        /**
+         * @return array
+         */
+        public function getGroupBy()
+        {
+            return $this->group;
+		}
+
 		/**
 		 * @return SelectQuery
 		**/
@@ -361,12 +377,20 @@
 			
 			return $this;
 		}
-		
+
+        /**
+         * @return SelectField[]
+         */
+		public function getFields()
+		{
+			return $this->fields;
+		}
+
 		public function getFieldsCount()
 		{
 			return count($this->fields);
 		}
-		
+
 		public function getTablesCount()
 		{
 			return $this->joiner->getTablesCount();

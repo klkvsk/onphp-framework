@@ -22,7 +22,7 @@
 		/**
 		 * @return MyDialect
 		**/
-		public static function getDialect()
+		public function getDialect()
 		{
 			return MyDialect::me();
 		}
@@ -30,7 +30,7 @@
 		/**
 		 * @return MySQL
 		**/
-		public function setDbEncoding()
+		protected function setDbEncoding()
 		{
 			mysql_query("SET NAMES '{$this->encoding}'", $this->link);
 			

@@ -40,8 +40,8 @@
 		{
 			$field =
 				(
-					$this->table
-						? $this->table->toDialectString($dialect).'.'
+					$this->getTable()
+						? $this->getTable()->toDialectString($dialect).'.'
 						: null
 				)
 				.$dialect->quoteField($this->field);
@@ -58,7 +58,7 @@
 		}
 		
 		/**
-		 * @return DialectString
+		 * @return FromTable|DialectString
 		**/
 		public function getTable()
 		{
