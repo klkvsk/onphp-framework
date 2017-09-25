@@ -39,4 +39,11 @@ interface ShardingStrategy
      * @return int[]
      */
     public function chooseShards(Range $values);
+
+    /**
+     * @param SelectQuery $query
+     * @param int $shardId
+     * @return SelectQuery
+     */
+    public function targetizeSelectQuery(SelectQuery $query, $shardId);
 }

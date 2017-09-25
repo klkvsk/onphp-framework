@@ -194,11 +194,14 @@ class RangedSharding implements ShardingStrategy
 
     /**
      * @param $shardId
-     * @return mixed|Range
+     * @return Range
+     * @throws MissingElementException
      */
     public function getRangeByShardId($shardId)
     {
-        assert(isset($this->shardRanges[$shardId]));
+        if (!isset($this->shardRanges[$shardId])) {
+            throw new MissingElementException('shard not found, id: ' . $shardId);
+        }
         return $this->shardRanges[$shardId];
     }
 
@@ -228,4 +231,27 @@ class RangedSharding implements ShardingStrategy
         }
         return $shards;
     }
+
+    public function targetizeSelectQuery(SelectQuery $query, $shardId)
+    {
+        $shardQuery = clone $query;
+        $logic = $shardQuery->getWhere();
+        $range = $this->getRangeByShardId($shardId);
+        $target = Expression::andBlock(
+            Expression::gtEq($this->shardingKey, $range->getMin()),
+            Expression::ltEq($this->shardingKey, $range->getMax())
+        );
+
+        if ($logic == null) {
+            $targetizedLogic = $target;
+        } else {
+            $targetizedLogic = Expression::andBlock($logic, $target);
+        }
+
+        $shardQuery->dropWhere()->where($targetizedLogic);
+
+        return $shardQuery;
+    }
+
+
 }

@@ -104,12 +104,12 @@ class ShardedDB extends MultiDB
             throw new WrongArgumentException('unable to route query: ' . $query->toDialectString($this->getDialect()));
         }
 
-        return array_map(
-            function ($id) {
-                return $this->getShard($id);
-            },
-            $shardIds
-        );
+        $shards = [];
+        foreach ($shardIds as  $id) {
+            $shards[$id] = $this->getShard($id);
+        }
+
+        return $shards;
     }
 
     public function queryRaw($queryString)
@@ -157,7 +157,9 @@ class ShardedDB extends MultiDB
     {
         $shards = $this->getShardsForQuery($query);
         if (count($shards) == 1) {
-            return reset($shards)->querySet($query);
+            return reset($shards)->querySet(
+                $this->getShardingStrategy($query)->targetizeSelectQuery($query, key($shards))
+            );
         }
 
         // store query configuration for post-processing
@@ -244,8 +246,10 @@ class ShardedDB extends MultiDB
 
         // actually do the query and merge all rows into one set
         $result = [];
-        foreach ($shards as $id => $shard) {
-            $shardResult = $shard->querySet($query);
+        foreach ($shards as $shardId => $shard) {
+            $shardResult = $shard->querySet(
+                $this->getShardingStrategy($query)->targetizeSelectQuery($query, $shardId)
+            );
             foreach ($shardResult as $row) {
                 $result []= $row;
             }

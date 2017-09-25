@@ -27,6 +27,15 @@
 		}
 
         /**
+         * @return $this
+         */
+        public function dropWhere()
+        {
+            $this->where = null;
+            return $this;
+		}
+
+        /**
          * @param LogicalObject $exp
          * @param $logic
          * @return $this
