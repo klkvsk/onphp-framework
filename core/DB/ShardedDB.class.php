@@ -229,8 +229,29 @@ class ShardedDB extends MultiDB
         // with aggregations, every field we do not aggregate should exist in groupBy list, double check that!
         if (!empty($aggregates)) {
             foreach ($query->getGroupBy() as $groupField) {
-                assert(is_string($groupField) || $groupField instanceof DBField, 'can not group by ' . get_class($groupField));
-                $groupFieldName = $groupField instanceof DBField ? $groupField->getField() : $groupField;
+                switch (true) {
+                    case is_string($groupField):
+                        $groupFieldName = $groupField;
+                        break;
+
+                    case $groupField instanceof DBField:
+                        $groupFieldName = $groupField->getField();
+                        break;
+
+                    case $groupField instanceof GroupBy:
+                        $groupFieldName = $groupField->getField();
+                        if ($groupFieldName instanceof DBField) {
+                            // can be wrapped inside too
+                            $groupFieldName = $groupFieldName->getField();
+                        }
+                        break;
+
+                    default:
+                        throw new WrongArgumentException(
+                            'can not group by '
+                            . (is_object($groupField) ? get_class($groupField) : var_export($groupField, true))
+                        );
+                }
                 $groupBy[$groupFieldName] = true;
             }
 
