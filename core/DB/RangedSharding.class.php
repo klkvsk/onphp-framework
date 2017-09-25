@@ -238,8 +238,8 @@ class RangedSharding implements ShardingStrategy
         $logic = $shardQuery->getWhere();
         $range = $this->getRangeByShardId($shardId);
         $target = Expression::andBlock(
-            Expression::gtEq($this->shardingKey, $range->getMin()),
-            Expression::ltEq($this->shardingKey, $range->getMax())
+            Expression::gtEq(DBField::create($this->shardingKey, $this->getTableName()), $range->getMin()),
+            Expression::ltEq(DBField::create($this->shardingKey, $this->getTableName()), $range->getMax())
         );
 
         if ($logic == null) {
