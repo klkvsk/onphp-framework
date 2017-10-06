@@ -1005,9 +1005,9 @@ class DataGrid extends BaseWidget
                 if (isset($this->renderers[$fieldId])) {
                     $callback = $this->renderers[$fieldId];
                     if ($this->renderers[$fieldId] instanceof Closure) {
-                        $field = $callback($field, $object);
+                        $field = $callback($field, $object, $fieldId);
                     } else {
-                        $field = call_user_func($callback, $field, $object);
+                        $field = call_user_func($callback, $field, $object, $fieldId);
                     }
                 }
                 $data[$rowId][$fieldId] = $field;
