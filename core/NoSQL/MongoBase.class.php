@@ -1,4 +1,7 @@
 <?php
+
+use MongoDB\BSON\ObjectID;
+
 /**
  * MongoBase connector.
  *
@@ -28,12 +31,12 @@ class MongoBase extends NoSQL {
 	protected $connectionOptions = null;
 
 	/**
-	 * @var Mongo
+	 * @var MongoDB\Client
 	 */
 	protected $link			= null;
 
 	/**
-	 * @var MongoDB
+	 * @var MongoDB\Database
 	 */
 	protected $db			= null;
 
@@ -66,8 +69,6 @@ class MongoBase extends NoSQL {
 	 */
 	public function connect() {
 		// в зависимости от версии драйвера создаем нужного клиента
-		$Mongo = self::getClientClass();
-
 		if (empty($this->connectionString)) {
 			$conn =
 				'mongodb://'
@@ -81,40 +82,10 @@ class MongoBase extends NoSQL {
 			$this->setBasename($base);
 		}
 
-		$options = array('connect' => true, 'slaveOkay' => false);
-		if (!empty($this->connectionOptions)) {
-			$options = array_merge($options, $this->connectionOptions);
-		}
 
-		if ($this->persistent) {
-			$options['persist'] = $this->hostname.'-'.$this->basename;
-		}
-		$readPreference = isset($options['slaveOkay']) && $options['slaveOkay'];
-		if( $Mongo==='MongoClient' ) {
-			$options['readPreference'] = $readPreference ? $Mongo::RP_SECONDARY_PREFERRED : $Mongo::RP_PRIMARY_PREFERRED;
-			unset($options['slaveOkay']);
-		}
-		try {
-			$this->link = new $Mongo($conn, $options);
-			$this->db = $this->link->selectDB($this->basename);
-			if( method_exists($Mongo, 'setReadPreference') ) {
-				$this->link->setReadPreference($readPreference ? $Mongo::RP_SECONDARY_PREFERRED : $Mongo::RP_PRIMARY_PREFERRED);
-			} else {
-				$this->link->setSlaveOkay($options['slaveOkay']);
-			}
-			if (isset($options['w'])) {
-				$this->writeConcern = $options['w'];
-			}
+        $this->link = new MongoDB\Client($conn, $this->connectionOptions);
+        $this->db = $this->link->selectDatabase($this->basename);
 
-		} catch(MongoConnectionException $e) {
-			throw new NoSQLException(
-				'can not connect to MongoBase server: '.$e->getMessage()
-			);
-		} catch(InvalidArgumentException $e) {
-			throw new NoSQLException(
-				'can not select DB in MongoBase: '.$e->getMessage()
-			);
-		}
 
 		return $this;
 	}
@@ -129,20 +100,25 @@ class MongoBase extends NoSQL {
 	 * @return MongoBase
 	 */
 	public function disconnect() {
-		if( $this->isConnected() ) {
-			$this->link->close();
-		}
 		$this->link = null;
 		$this->db = null;
 
 		return $this;
 	}
 
+    /**
+     * @return \MongoDB\Client|null
+     */
+    public function getLink()
+    {
+        return $this->link;
+	}
+
 	/**
 	 * @return bool
 	 */
 	public function isConnected() {
-		return ($this->link instanceof Mongo && $this->link->connected);
+		return $this->link !== null;
 	}
 
 	/**
@@ -165,10 +141,10 @@ class MongoBase extends NoSQL {
 
 	/**
 	 * @param string $sequence
-	 * @return MongoId
+	 * @return ObjectID
 	 */
 	public function obtainSequence($sequence) {
-		return new MongoId(mb_strtolower(trim($sequence)));
+		return new ObjectID();
 	}
 
 	public function selectOne($table, $key) {
@@ -176,7 +152,7 @@ class MongoBase extends NoSQL {
 			$this
 				->db
 					->selectCollection($table)
-						->findOne( array('_id' => new MongoId($key)) );
+						->findOne( array('_id' => new ObjectID($key)) );
 		if( is_null($row) ) {
 			throw new ObjectNotFoundException( 'Object with id "'.$key.'" in table "'.$table.'" not found!' );
 		}
@@ -221,7 +197,7 @@ class MongoBase extends NoSQL {
 			$result =
 				$this->db
 					->selectCollection($table)
-						->insert($row, $options);
+						->insertOne($row, $options);
 
 			if ($isSafe && is_array($result)) {
 				$this->checkResult($result);
@@ -265,7 +241,7 @@ class MongoBase extends NoSQL {
 		$result =
 			$this->db
 				->selectCollection($table)
-				->batchInsert($rows, $options);
+				->insertMany($rows, $options);
 
 		if ($isSafe && is_array($result)) {
 			$this->checkResult($result);
@@ -313,7 +289,7 @@ class MongoBase extends NoSQL {
 				$this
 					->db
 						->selectCollection($table)
-							->update($where, $row, $options);
+							->updateOne($where, $row, $options);
 
 			if ($isSafe && is_array($result)) {
 				$this->checkResult($result);
@@ -326,7 +302,7 @@ class MongoBase extends NoSQL {
 						 */
 						$upserted = array_pop($upserted);
 					}
-					if ($upserted instanceof MongoId) {
+					if ($upserted instanceof ObjectID) {
 						$id = $upserted;
 					}
 				}
@@ -364,7 +340,7 @@ class MongoBase extends NoSQL {
 			$this
 				->db
 					->selectCollection($table)
-						->remove( array('_id' => $this->makeId($key)), array('justOne' => true) );
+						->deleteOne( array('_id' => $this->makeId($key)) );
 	}
 
 	public function deleteList($table, array $keys) {
@@ -372,7 +348,7 @@ class MongoBase extends NoSQL {
 			$this
 				->db
 					->selectCollection($table)
-						->remove( array('_id' => array('$in' => $this->makeIdList($keys))) );
+						->deleteMany( array('_id' => array('$in' => $this->makeIdList($keys))) );
 	}
 
 	public function getPlainList($table) {
@@ -396,8 +372,7 @@ class MongoBase extends NoSQL {
 			$this
 				->db
 					->selectCollection($table)
-						->find(array(), array('_id'))
-							->count();
+                        ->count();
 	}
 
 	public function getCountByField($table, $field, $value, Criteria $criteria = null) {
@@ -488,11 +463,12 @@ class MongoBase extends NoSQL {
 		$this->mongoDelete($query[self::C_TABLE], $query[self::C_QUERY], $options);
 	}
 
-	/**
-	 * @param Criteria $criteria
-	 * @return MongoCursor
-	 * @throws NoSQLException
-	 */
+    /**
+     * @param Criteria $criteria
+     * @return \MongoDB\Driver\Cursor
+     * @throws NoSQLException
+     * @throws WrongStateException
+     */
 	public function makeCursorByCriteria(Criteria $criteria) {
 		$options = $this->parseCriteria($criteria);
 
@@ -500,19 +476,20 @@ class MongoBase extends NoSQL {
 			throw new NoSQLException('Can not find without table!');
 		}
 
-		return $this->mongoMakeCursor(
-			$options[self::C_TABLE],
-			$options[self::C_QUERY],
-			$options[self::C_FIELDS],
-			$options[self::C_ORDER],
-			$options[self::C_LIMIT],
-			$options[self::C_SKIP]
-		);
+		return $this->db->selectCollection($options[self::C_TABLE])->find(
+		    $options[self::C_QUERY],
+            $this->mongoMakeFindOptions(
+                $options[self::C_FIELDS],
+                $options[self::C_ORDER],
+                $options[self::C_LIMIT],
+                $options[self::C_SKIP])
+        );
 	}
 
 	protected function mongoFind($table, array $query, array $fields=array(), array $order=null, $limit=null, $skip=null) {
 		// quering
-		$cursor = $this->mongoMakeCursor($table, $query, $fields, $order, $limit, $skip);
+		$options = $this->mongoMakeFindOptions($fields, $order, $limit, $skip);
+		$cursor = $this->db->selectCollection($table)->find($query, $options);
 		// recieving objects
 		$rows = array();
 		foreach ($cursor as $row) {
@@ -524,9 +501,9 @@ class MongoBase extends NoSQL {
 
 	protected function mongoCount($table, array $query, array $fields=array(), array $order=null, $limit=null, $skip=null) {
 		// quering
-		$cursor = $this->mongoMakeCursor($table, $query, $fields, $order, $limit, $skip);
+        $options = $this->mongoMakeFindOptions($fields, $order, $limit, $skip);
 		// fetch result
-		$count = $cursor->count();
+		$count = $this->db->selectCollection($table)->count($query, $options);
 		// check result
 		self::assertCountResult($count);
 		// return count
@@ -546,49 +523,47 @@ class MongoBase extends NoSQL {
 	}
 
 	protected function mongoDelete($table, array $query, array $options) {
-		$res = $this->db->selectCollection($table)->remove($query, $options);
+		$res = $this->db->selectCollection($table)->deleteMany($query, $options);
 		if (isset($res['err']) && !is_null($res['err'])) {
 			throw new NoSQLException($res['err']);
 		}
 	}
 
-	/**
-	 * @param $table
-	 * @param array $query
-	 * @param array $fields
-	 * @param array $order
-	 * @param int $limit
-	 * @param int $skip
-	 * @return MongoCursor
-	 */
-	protected function mongoMakeCursor($table, array $query, array $fields=array(), array $order=null, $limit=null, $skip=null) {
-		$cursor =
-			$this
-				->db
-					->selectCollection($table)
-						->find( $query, $fields );
-		if( !is_null($order) ) {
-			$cursor->sort( $order );
-		}
-		if( !is_null($limit) ) {
-			$cursor->limit( $limit );
-		}
-		if( !is_null($skip) ) {
-			$cursor->skip( $skip );
-		}
-		return $cursor;
+    /**
+     * @param array $fields
+     * @param array $order
+     * @param int $limit
+     * @param int $skip
+     * @return array
+     */
+	protected function mongoMakeFindOptions(array $fields=array(), array $order=null, $limit=null, $skip=null) {
+	    $options = [];
+	    if ($fields) {
+	        $options['projection'] = $fields;
+        }
+        if ($skip) {
+	        $options['skip'] = $skip;
+        }
+        if ($limit) {
+	        $options['limit'] = $limit;
+        }
+        if ($order) {
+	        $options['sort'] = $order;
+        }
+        return $options;
 	}
 
-	/**
-	 * @param string   $table
-	 * @param string   $map
-	 * @param string   $reduce
-	 * @param Criteria $criteria
-	 * @param int      $timeout
-	 * @param array	   $out
-	 * @throws NoSQLException
-	 * @return array
-	 */
+    /**
+     * @param string $table
+     * @param string $map
+     * @param string $reduce
+     * @param Criteria $criteria
+     * @param int $timeout
+     * @param array $out
+     * @throws NoSQLException
+     * @return array
+     * @throws WrongStateException
+     */
 	public function mapReduce($table, $map, $reduce, Criteria $criteria=null, $timeout=30, $out=array('inline'=>1)) {
 		$options = $this->parseCriteria($criteria);
 
@@ -667,7 +642,7 @@ class MongoBase extends NoSQL {
 	}
 
 	protected function makeId($key) {
-		return ($key instanceof MongoId) ? $key : new MongoId($key);
+		return ($key instanceof ObjectID) ? $key : new ObjectID($key);
 	}
 
 	protected function makeIdList(array $keys) {
@@ -679,11 +654,12 @@ class MongoBase extends NoSQL {
 		return $fields;
 	}
 
-	/**
-	 * Разбираем критерию на параметры запроса к монго
-	 * @param Criteria $criteria
-	 * @return array
-	 */
+    /**
+     * Разбираем критерию на параметры запроса к монго
+     * @param Criteria $criteria
+     * @return array
+     * @throws WrongStateException
+     */
 	protected function parseCriteria(Criteria $criteria=null) {
 		$result = array();
 		// парсим табличку

@@ -39,7 +39,7 @@ class NoSqlResultList implements Iterator {
 	 */
 	public function current() {
 		$row = $this->getCursor()->current();
-		if ($row['_id'] instanceof MongoId) {
+		if ($row['_id'] instanceof MongoDB\BSON\ObjectID) {
             $row['id'] = (string)$row['_id'];
         } else {
             $row['id'] = $row['_id'];
