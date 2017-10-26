@@ -153,6 +153,32 @@ class ShardedDB extends MultiDB
         return $this->runSelectQuery($query);
     }
 
+    /**
+     * Returns alias for $fieldName if it is found in select fields.
+     * Otherwise returns $fieldName as is.
+     * Example:
+     *  in "SELECT oid AS ObjectID .. GROUP BY oid"
+     *  resolveToAlias("oid") returns "ObjectID"
+     * @param SelectQuery $query
+     * @param $fieldName
+     * @return null
+     */
+    protected function resolveToAlias(SelectQuery $query, $fieldName) {
+        foreach ($query->getFields() as $selectField) {
+            $selectFieldName = $selectField->getField();
+            if ($selectFieldName instanceof DBField) {
+                $selectFieldName = $selectFieldName->getField();
+            }
+            if ($selectFieldName == $fieldName) {
+                if ($selectField->getAlias()) {
+                    return $selectField->getAlias();
+                }
+                break;
+            }
+        }
+        return $fieldName;
+    }
+
     protected function runSelectQuery(SelectQuery $query)
     {
         $shards = $this->getShardsForQuery($query);
@@ -252,6 +278,7 @@ class ShardedDB extends MultiDB
                             . (is_object($groupField) ? get_class($groupField) : var_export($groupField, true))
                         );
                 }
+                $groupFieldName = $this->resolveToAlias($query, $groupFieldName);
                 $groupBy[$groupFieldName] = true;
             }
 
@@ -262,7 +289,8 @@ class ShardedDB extends MultiDB
         // finally save ordering, we can use original OrderBy for later, but make sure it's sort by field, not function
         foreach ($query->getOrderChain()->getList() as $order) {
             assert($order->getField() instanceof DBField, 'can not order by ' . get_class($order->getField()));
-            $orderBy[$order->getFieldName()] = $order;
+            $orderFieldName = $this->resolveToAlias($query, $order->getFieldName());
+            $orderBy[$orderFieldName] = $order;
         }
 
         // actually do the query and merge all rows into one set
@@ -324,27 +352,28 @@ class ShardedDB extends MultiDB
 
         // next we do the sorting
         foreach ($orderBy as $order) {
-            usort($result, function ($rowA, $rowB) use ($order) {
-                 $fieldA = $rowA[$order->getFieldName()];
-                 $fieldB = $rowB[$order->getFieldName()];
-                 if ($fieldA === null || $fieldB === null) {
-                     if ($fieldA === null && $fieldB === null) {
-                         return 0;
-                     }
-                     if ($fieldA === null) {
-                         return $order->isNullsFirst() ? -1 : 1;
-                     }
-                     if ($fieldB === null) {
-                         return $order->isNullsFirst() ? 1 : -1;
-                     }
-                 }
-                 if ($fieldA > $fieldB) {
-                     return $order->isAsc() ? 1 : -1;
-                 }
-                 if ($fieldA < $fieldB) {
-                     return $order->isAsc() ? -1 : 1;
-                 }
-                 return 0;
+            usort($result, function ($rowA, $rowB) use ($query, $order) {
+                $fieldName = $this->resolveToAlias($query, $order->getFieldName());
+                $fieldA = $rowA[$fieldName];
+                $fieldB = $rowB[$fieldName];
+                if ($fieldA === null || $fieldB === null) {
+                    if ($fieldA === null && $fieldB === null) {
+                        return 0;
+                    }
+                    if ($fieldA === null) {
+                        return $order->isNullsFirst() ? -1 : 1;
+                    }
+                    if ($fieldB === null) {
+                        return $order->isNullsFirst() ? 1 : -1;
+                    }
+                }
+                if ($fieldA > $fieldB) {
+                    return $order->isAsc() ? 1 : -1;
+                }
+                if ($fieldA < $fieldB) {
+                    return $order->isAsc() ? -1 : 1;
+                }
+                return 0;
             });
         }
 
