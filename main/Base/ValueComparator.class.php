@@ -62,15 +62,22 @@ class ValueComparator extends Singleton implements Comparator, Instantiatable
         return 0;
     }
 
+    /**
+     * @param $value
+     * @return float|int|string
+     */
     public function toComparable($value) {
         if ($value instanceof Identifiable) {
-            return $value->getId();
+            return (string)$value->getId();
         }
         if ($value instanceof Date) {
             return $value->toStamp();
         }
+        if ($value instanceof Stringable) {
+            return $value->toString();
+        }
         if (is_numeric($value)) {
-            $value = doubleval($value);
+            return doubleval($value);
         }
         return $value;
     }
