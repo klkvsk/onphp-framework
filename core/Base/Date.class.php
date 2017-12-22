@@ -18,7 +18,7 @@
  *
  * @ingroup Base
  **/
-class Date implements Stringable, DialectString
+class Date implements Stringable, DialectString, JsonSerializable
 {
 	const WEEKDAY_MONDAY 	= 1;
 	const WEEKDAY_TUESDAY	= 2;
@@ -346,5 +346,10 @@ class Date implements Stringable, DialectString
 		}
 
 	}
+
+    public function jsonSerialize()
+    {
+        return $this->toString();
+    }
+
 }
-?>
