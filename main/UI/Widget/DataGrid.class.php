@@ -613,7 +613,7 @@ class DataGrid extends BaseWidget
 					try {
 						return DataGrid::table()->setParent($self)->addRows($value->fetch()->getList())->ToString();
 					} catch (Exception $e) {
-						return $e->getMessage();
+                        return $e->getMessage();
 					}
 				}
 			};
@@ -632,7 +632,7 @@ class DataGrid extends BaseWidget
 				try {
 					return DataGrid::table()->setParent($self)->addRows($value)->ToString();
 				} catch (Exception $e) {
-					return $e->getMessage();
+                    return $e->getMessage();
 				}
 			};
 
@@ -770,7 +770,8 @@ class DataGrid extends BaseWidget
 						if (is_object($object)) {
 							try {
 								// support non-prototyped getters
-								$getter = 'get' . ucfirst($propertyName);
+                                $property = null;
+                                $getter = 'get' . ucfirst($propertyName);
 								Assert::methodExists($object, $getter);
 								$object = $object->$getter();
 								continue;
@@ -780,7 +781,8 @@ class DataGrid extends BaseWidget
 						}
 
 						if (is_array($object) && isset($object[$propertyName])) {
-							$object = $object[$propertyName];
+                            $property = null;
+                            $object = $object[$propertyName];
 							continue;
 						}
 
