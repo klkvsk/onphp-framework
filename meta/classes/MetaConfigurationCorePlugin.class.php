@@ -30,6 +30,11 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
     /** @var bool  */
     protected $buildSchemaChanges   = true;
 
+    /** @var string[] */
+    protected $typeMap = [];
+    /** @var string[] */
+    protected $patternMap = [];
+
     /**
      * @return string[] (string)dtd-name => (string)dtd-filepath
      */
@@ -47,6 +52,20 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
     public function __construct(MetaConfiguration $metaConfiguration)
     {
         $this->meta = $metaConfiguration;
+
+        // register all core types
+        foreach (glob(ONPHP_META_TYPES . '*Type' . EXT_CLASS) as $typeClassFilename) {
+            $typeClassName = basename($typeClassFilename, EXT_CLASS);
+            $typeName = basename($typeClassName, 'Type');
+            $this->addType($typeName, $typeClassName);
+        }
+
+        // register all core patterns
+        foreach (glob(ONPHP_META_PATTERNS . '*Pattern' . EXT_CLASS) as $patternClassFileName) {
+            $patternClassName = basename($patternClassFileName, EXT_CLASS);
+            $patternName = basename($patternClassName, 'Pattern');
+            $this->addPattern($patternName, $patternClassName);
+        }
     }
 
     /**
@@ -990,6 +1009,55 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
         return $this->classes;
     }
 
+
+    /**
+     * @param string $typeName
+     * @param string $typeClassName
+     * @return $this
+     */
+    public function addType($typeName, $typeClassName)
+    {
+        $this->typeMap[$typeName] = $typeClassName;
+        return $this;
+    }
+
+    public function addPattern($patterName, $patternClassName)
+    {
+        $this->patternMap[$patterName] = $patternClassName;
+        return $this;
+    }
+
+    /**
+     * @param string $type
+     * @param array $parameters
+     * @return BasePropertyType
+     */
+    public function resolveTypeClass($type, array $parameters = [])
+    {
+        if (isset($this->typeMap[$type])) {
+            $typeClassName = $this->typeMap[$type];
+        } else {
+            $typeClassName = ObjectType::class;
+        }
+
+        return new $typeClassName($type, $parameters);
+    }
+
+    /**
+     * @param string $name
+     * @return BasePattern
+     * @throws MissingElementException
+     */
+    public function resolvePattern($name)
+    {
+        if (!isset($this->patternMap[$name])) {
+            throw new MissingElementException("unknown pattern '{$name}'");
+        }
+
+        return Singleton::getInstance($this->patternMap[$name]);
+    }
+
+
     /**
      * @param SimpleXMLElement $source
      * @return self
@@ -1119,7 +1187,7 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
             }
 
             $class->setPattern(
-                $this->guessPattern((string)$xmlClass->pattern['name'])
+                $this->resolvePattern((string)$xmlClass->pattern['name'])
             );
 
             if ((string)$xmlClass->pattern['fetch'] == 'cascade')
@@ -1369,12 +1437,8 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
                 'strange name or type given: "' . $name . '" - "' . $type . '"'
             );
 
-        if (is_readable(ONPHP_META_TYPES . $type . 'Type' . EXT_CLASS))
-            $typeClass = $type . 'Type';
-        else
-            $typeClass = 'ObjectType';
-
-        $property = new MetaClassProperty($name, new $typeClass($type, $parameters), $class);
+        $typeClass = $this->resolveTypeClass($type, $parameters);
+        $property = new MetaClassProperty($name, $typeClass, $class);
 
         if ($size)
             $property->setSize($size);
@@ -1396,23 +1460,6 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
         }
 
         return $property;
-    }
-
-    /**
-     * @param string $name
-     * @throws MissingElementException
-     * @return GenerationPattern
-     **/
-    protected function guessPattern($name)
-    {
-        $class = $name . 'Pattern';
-
-        if (is_readable(ONPHP_META_PATTERNS . $class . EXT_CLASS))
-            return Singleton::getInstance($class);
-
-        throw new MissingElementException(
-            "unknown pattern '{$name}'"
-        );
     }
 
     /**

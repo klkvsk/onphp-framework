@@ -108,9 +108,6 @@ EOT;
 						? "new {$className}(\$this->{$name}Id)"
 						: "{$className}::dao()->getById(\$this->{$name}Id)";
 
-					$identifierHint = 'int';
-					$property->getType()->getClass()->getIdentifier()->getType()->getPrimitiveName();
-
 					$method = <<<EOT
 
 /**

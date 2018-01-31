@@ -213,56 +213,56 @@ class PrototypeUtils
 	 */
 	public static function toArray(Prototyped $object, $useColumnNames = true) {
 		$entity = array();
-		/** @var $property LightMetaProperty */
-		foreach ($object->proto()->getPropertyList() as $property) {
-		    $key = $useColumnNames ? $property->getColumnName() : $property->getName();
-			// обрабатываем базовые типы
-			if( $property->isGenericType() ) {
+        /** @var $property LightMetaProperty */
+        foreach ($object->proto()->getPropertyList() as $property) {
+            $key = $useColumnNames ? $property->getColumnName() : $property->getName();
+            // обрабатываем базовые типы
+            if ($property->isGenericType()) {
 				$value = call_user_func(array($object, $property->getGetter()));
-				if( is_object( $value )&& $value instanceof Date ) {
-						$value = $value->toStamp();
-						//$value = $value->toString();
-				}
-				if( $property->getType() == 'integer' ) {
-					$entity[ $key ] = ($value === null) ? null : (int)$value;
-				} elseif( $property->getType() == 'float' ) {
-					$entity[ $key ] = ($value === null) ? null : (float)$value;
-				} elseif( $property->getType() == 'string' ) {
-					$value = (string)$value;
-					if ($property->getMax() > 0) {
-						$value = mb_substr($value, 0, $property->getMax());
-					}
-					if ($value === false || $value === "") {
-						// если false или "", то null
-						$value = null;
-					}
-					$entity[ $key ] = $value;
-				} elseif ($property->getType() == 'hstore') {
-					/** @var $value Hstore|null */
-					$entity[ $key ] = $value instanceof Hstore ? $value->getList() : null;
-				} else {
-					$entity[ $key ] = $value;
-				}
-			} // обрабатываем перечисления
+                if (is_object($value) && $value instanceof Date) {
+                    $value = $value->toStamp();
+                    //$value = $value->toString();
+                }
+                if ($property->getType() == 'integer') {
+                    $entity[$key] = ($value === null) ? null : (int)$value;
+                } else if ($property->getType() == 'float') {
+                    $entity[$key] = ($value === null) ? null : (float)$value;
+                } else if ($property->getType() == 'string') {
+                    $value = (string)$value;
+                    if ($property->getMax() > 0) {
+                        $value = mb_substr($value, 0, $property->getMax());
+                    }
+                    if ($value === false || $value === "") {
+                        // если false или "", то null
+                        $value = null;
+                    }
+                    $entity[$key] = $value;
+                } else if ($property->getType() == 'hstore') {
+                    /** @var $value Hstore|null */
+                    $entity[$key] = $value instanceof Hstore ? $value->getList() : null;
+                } else {
+                    $entity[$key] = $value;
+                }
+            } // обрабатываем перечисления
 			elseif (in_array($property->getType(), array('enumeration', 'enum', 'registry'))) {
-				/** @var Identifiable|null $value */
+                /** @var Identifiable|null $value */
 				$value = call_user_func(array($object, $property->getGetter()));
-				$entity[ $key ] = $value instanceof Identifiable ? $value->getId() : null;
-			} // обрабатываем связи 1к1
-			elseif($property->isInner()) {
+                $entity[$key] = $value instanceof Identifiable ? $value->getId() : null;
+            } // обрабатываем связи 1к1
+            else if ($property->isInner()) {
 				$value = call_user_func(array($object, $property->getGetter()));
-				$entity[ $key ] = $value instanceof Prototyped ? self::toArray($value, $useColumnNames) : null;
+                $entity[$key] = $value instanceof Prototyped ? self::toArray($value, $useColumnNames) : null;
 			}
 			elseif( in_array($property->getType(), self::$identifiers) && $property->getRelationId()==1 ) {
 				$value = call_user_func(array($object, $property->getGetter().'Id'));
-				$entity[ $key ] = is_numeric($value) ? (int)$value : $value;
-			}
-		}
-		return $entity;
-	}
+                $entity[$key] = is_numeric($value) ? (int)$value : $value;
+            }
+        }
+        return $entity;
+    }
 
-	/**
-	 * @param Prototyped $a first object
+    /**
+     * @param Prototyped $a first object
 	 * @param Prototyped $b second object
 	 * @param array $ignore properties to ignore
 	 * @return bool

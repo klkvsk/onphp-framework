@@ -18,6 +18,9 @@
 		extends QuerySkeleton
 		implements SQLTableName
 	{
+	    /** @var QueryFieldSetter[] */
+	    protected static $queryFieldSetters = [];
+
 		protected $table	= null;
 		protected $fields	= array();
 		
@@ -61,12 +64,26 @@
 			
 			return $this;
 		}
+
+        public static function registerQueryFieldSetter(QueryFieldSetter $queryFieldSetter)
+        {
+            self::$queryFieldSetters []= $queryFieldSetter;
+		}
 		
 		/**
 		 * @return InsertOrUpdateQuery
 		**/
 		public function lazySet($field, /* Identifiable */ $object = null)
 		{
+		    // external types
+		    foreach (self::$queryFieldSetters as $queryFieldSetter) {
+		        if ($queryFieldSetter->match($object)) {
+		            $queryFieldSetter->set($this, $field, $object);
+		            return $this;
+                }
+            }
+
+            // core types
 			if ($object === null)
 				$this->set($field, null);
 			elseif ($object instanceof Identifiable)

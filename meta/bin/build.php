@@ -279,6 +279,8 @@ Possible options:
 		$out->
 			newLine()->
 			infoLine('onPHP-'.ONPHP_VERSION.': MetaConfiguration builder.', true)->
+			newLine()->
+			infoLine('Using config: ' . $pathConfig, true)->
 			newLine();
 		
 		try {

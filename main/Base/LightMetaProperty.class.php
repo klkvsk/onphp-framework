@@ -19,6 +19,9 @@
 	{
 		const UNSIGNED_FLAG = 0x1000;
 
+		/** @var LightMetaPropertyValueMapper[] */
+		protected static $valueMappers = [];
+
 		private static $limits = array(
 			0x0002 => array(
 				PrimitiveInteger::SIGNED_SMALL_MIN,
@@ -308,12 +311,17 @@
                         array('Primitive', 'string'),
                         $name
                     );
-            } else {
+            } else if (method_exists('Primitive', $this->type)) {
                 $prm =
                     call_user_func(
                         array('Primitive', $this->type),
                         $name
                     );
+            } else if (class_exists($this->type)) {
+                $prmClass = $this->type;
+                $prm = new $prmClass($name);
+            } else {
+                throw new WrongStateException('unknown primitive type: ' . $this->type);
             }
 
 			if (null !== ($min = $this->getMin()))
@@ -413,6 +421,11 @@
 			return $query;
 		}
 
+        public static function registerValueMapper(LightMetaPropertyValueMapper $mapper)
+        {
+            self::$valueMappers []= $mapper;
+		}
+
 		public function toValue(ProtoDAO $dao = null, $array, $prefix = null)
 		{
 			$raw = $array[$prefix.$this->columnName];
@@ -424,6 +437,12 @@
 			if ($this->className == 'HttpUrl') {
 				return HttpUrl::create()->parse($raw);
 			}
+
+			foreach (self::$valueMappers as $mapper) {
+			    if ($mapper->matchType($this->type) || $mapper->matchClassName($this->className)) {
+			        return $mapper->map($raw);
+                }
+            }
 
 			if($this->type == 'set') {
 				// MongoDB driver compatibility
