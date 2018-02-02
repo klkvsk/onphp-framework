@@ -3,108 +3,81 @@
 use MongoDB\BSON\ObjectID;
 
 /**
- * MongoBase connector.
+ * MongoDB connector for driver v3+
  *
  * @see http://www.mongodb.org/
  *
  * @ingroup NoSQL
- * @author Alex Gorbylev <alex@gorbylev.ru>
- * @date 2012.03.27
+ * @author Mikhail Kulakovskiy <m@klkvsk.ru>
+ * @date 2018.02.02
  */
-class MongoBase extends NoSQL {
+class MongoBase extends NoSQL
+{
+    const C_TABLE   = 1001;
+    const C_FIELDS  = 1002;
+    const C_QUERY   = 1003;
+    const C_ORDER   = 1004;
+    const C_LIMIT   = 1005;
+    const C_SKIP    = 1006;
 
-	const C_TABLE	= 1001;
-	const C_FIELDS	= 1002;
-	const C_QUERY	= 1003;
-	const C_ORDER	= 1004;
-	const C_LIMIT	= 1005;
-	const C_SKIP	= 1006;
+    /** @var string|null */
+    protected $connectionString = null;
 
-	/**
-	 * @var string|null
-	 */
-	protected $connectionString = null;
+    /** @var array|null */
+    protected $connectionOptions = null;
 
-	/**
-	 * @var array|null
-	 */
-	protected $connectionOptions = null;
+    /** @var MongoDB\Client */
+    protected $link = null;
 
-	/**
-	 * @var MongoDB\Client
-	 */
-	protected $link			= null;
+    /** @var MongoDB\Database */
+    protected $db = null;
 
-	/**
-	 * @var MongoDB\Database
-	 */
-	protected $db			= null;
+    /** @var int|string  */
+    protected $safeWriteConcern = 1;
 
-	/**
-	 * @var int параметр "safe" ("w" в 1.3.0+)
-	 */
-	protected $writeConcern	= 1;
-
-	/** @var bool */
-	protected $isRetrying = false;
-
-	protected function reconnectAndRetry($function, $args) {
-		// have you tried turning it off and on again? (c)
-		$this->disconnect();
-		sleep(1);
-		$this->connect();
-		$this->isRetrying = true;
-		try {
-			call_user_func_array(array($this, $function), $args);
-		} catch (Exception $e) {
-			$this->isRetrying = false;
-			throw $e;
-		}
-		$this->isRetrying = false;
-	}
-
-	/**
-	 * @return MongoBase
-	 * @throws NoSQLException
-	 */
-	public function connect() {
-		// в зависимости от версии драйвера создаем нужного клиента
-		if (empty($this->connectionString)) {
-			$conn =
-				'mongodb://'
-				.($this->username && $this->password ? "{$this->username}:{$this->password}@" : null)
-				.$this->hostname
-				.($this->port ? ":{$this->port}" : null);
-		} else {
-			preg_match('#(.+)/(\w+)#', $this->connectionString, $matches);
-			$conn = $matches[1];
-			$base = $matches[2];
-			$this->setBasename($base);
-		}
-
+    /**
+     * @return MongoBase
+     * @throws NoSQLException
+     */
+    public function connect()
+    {
+        if (empty($this->connectionString)) {
+            $conn =
+                'mongodb://'
+                . ($this->username && $this->password ? "{$this->username}:{$this->password}@" : null)
+                . $this->hostname
+                . ($this->port ? ":{$this->port}" : null);
+        } else {
+            preg_match('#(.+)/(\w+)#', $this->connectionString, $matches);
+            $conn = $matches[1];
+            $base = $matches[2];
+            $this->setBasename($base);
+        }
 
         $this->link = new MongoDB\Client($conn, $this->connectionOptions);
         $this->db = $this->link->selectDatabase($this->basename);
 
+        return $this;
+    }
 
-		return $this;
-	}
+    public function switchToPrimary()
+    {
+        $this->connectionOptions['safe'] = true;
+        $this->connectionOptions['slaveOkay'] = false;
+        $this->connectionOptions['readPreference'] = 'primary';
+        $this->connect();
+    }
 
-	public function switchToPrimary() {
-		$this->connectionOptions['slaveOkay'] = false;
-		$this->connectionOptions['readPreference'] = 'primary';
-		$this->connect();
-	}
+    /**
+     * @return MongoBase
+     */
+    public function disconnect()
+    {
+        $this->link = null;
+        $this->db = null;
 
-	/**
-	 * @return MongoBase
-	 */
-	public function disconnect() {
-		$this->link = null;
-		$this->db = null;
-
-		return $this;
-	}
+        return $this;
+    }
 
     /**
      * @return \MongoDB\Client|null
@@ -112,356 +85,379 @@ class MongoBase extends NoSQL {
     public function getLink()
     {
         return $this->link;
-	}
+    }
 
-	/**
-	 * @return bool
-	 */
-	public function isConnected() {
-		return $this->link !== null;
-	}
+    /**
+     * @return bool
+     */
+    public function isConnected()
+    {
+        return $this->link !== null;
+    }
 
-	/**
-	 * @param $connectionString
-	 * @return MongoBase
-	 */
-	public function setConnectionString($connectionString) {
-		$this->connectionString = $connectionString;
-		return $this;
-	}
+    /**
+     * @param $connectionString
+     * @return MongoBase
+     */
+    public function setConnectionString($connectionString)
+    {
+        $this->connectionString = $connectionString;
 
-	/**
-	 * @param $connectionOptions
-	 * @return MongoBase
-	 */
-	public function setConnectionOptions($connectionOptions) {
-		$this->connectionOptions = $connectionOptions;
-		return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * @param string $sequence
-	 * @return ObjectID
-	 */
-	public function obtainSequence($sequence) {
-		return new ObjectID();
-	}
+    /**
+     * @param $connectionOptions
+     * @return MongoBase
+     */
+    public function setConnectionOptions($connectionOptions)
+    {
+        $this->connectionOptions = $connectionOptions;
 
-	public function selectOne($table, $key) {
-		$row =
-			$this
-				->db
-					->selectCollection($table)
-						->findOne( array('_id' => new ObjectID($key)) );
-		if( is_null($row) ) {
-			throw new ObjectNotFoundException( 'Object with id "'.$key.'" in table "'.$table.'" not found!' );
-		}
-		// return clean row
-		return $this->decodeId($row);
-	}
+        return $this;
+    }
 
-	public function selectList($table, array $keys) {
-		// quering
-		$cursor =
-			$this
-				->db
-					->selectCollection($table)
-						->find( array('_id' => array('$in'=>$this->makeIdList($keys)) ) );
-		// recieving objects
-		$rows = array();
-		foreach ($cursor as $row) {
-			$rows[] = $this->decodeId($row);
-		}
-		// return result
-		return $rows;
-	}
+    /**
+     * @param string $sequence
+     * @return ObjectID
+     */
+    public function obtainSequence($sequence)
+    {
+        return $this->makeId();
+    }
 
-	public function insert($table, array $row, $options = array()) {
-		$row = $this->encodeId($row);
-		$options = array_merge(
-			array('safe' => true),
-			$options
-		);
-		if ($options['safe']) {
-			if ($this->checkVersion('1.3.0')) {
-				$options['w'] = $this->writeConcern;
-				unset($options['safe']);
-			} else {
-				$options['safe'] = $this->writeConcern;
-			}
-		}
+    /**
+     * @param string $table
+     * @param string $id
+     * @return array
+     * @throws ObjectNotFoundException
+     */
+    public function selectOne($table, $id)
+    {
+        $rows = $this->mongoFind($table, [ '_id' => $this->makeId($id) ]);
 
-		$isSafe = isset($options['safe']) || isset($options['w']);
+        if (empty($rows)) {
+            throw new ObjectNotFoundException('Object with id "' . $id . '" in table "' . $table . '" not found!');
+        }
 
-		try {
-			$result =
-				$this->db
-					->selectCollection($table)
-						->insertOne($row, $options);
+        return reset($rows);
+    }
 
-			if ($isSafe && is_array($result)) {
-				$this->checkResult($result);
-			}
+    /**
+     * @param string $table
+     * @param string[] $ids
+     * @return array[]
+     */
+    public function selectList($table, array $ids)
+    {
+        return $this->mongoFind($table, [ '_id' => [ '$in' => $this->makeIdList($ids) ] ]);
+    }
 
-		} catch (Exception $e) {
-			if ($this->isRetrying) {
-				if ($e instanceof MongoCursorException && $e->getCode() == 11000) {
-					// E11000 == duplicate key error index
-					// если это вылезло при повторной попытке, значит первый раз таки вставили
-				} else {
-					throw $e;
-				}
-			} elseif ($e instanceof MongoCursorTimeoutException) {
-				$this->reconnectAndRetry(__FUNCTION__, func_get_args());
-			} else {
-				throw $e;
-			}
-		}
+    /**
+     * @param string $table
+     * @param array $row
+     * @param array $options
+     * @return array
+     */
+    public function insert($table, array $row, $options = [])
+    {
+        $row = $this->encodeRow($row);
 
-		// return clean row
-		return $this->decodeId($row);
-	}
+        $options = $this->parseOptions($options);
 
-	public function batchInsert($table, array $rows, array $options = array()) {
-		$options = array_merge(
-			array('safe' => true),
-			$options
-		);
-		if ($options['safe']) {
-			if ($this->checkVersion('1.3.0')) {
-				$options['w'] = $this->writeConcern;
-				unset($options['safe']);
-			} else {
-				$options['safe'] = $this->writeConcern;
-			}
-		}
+        $result = $this->db
+            ->selectCollection($table)
+            ->insertOne($row, $options);
 
-		$isSafe = isset($options['safe']) || isset($options['w']);
+        if ($result->isAcknowledged()) {
+            $row['_id'] = $result->getInsertedId();
+        }
 
-		$result =
-			$this->db
-				->selectCollection($table)
-				->insertMany($rows, $options);
+        return $this->decodeRow($row);
+    }
 
-		if ($isSafe && is_array($result)) {
-			$this->checkResult($result);
-		}
+    /**
+     * @param string $table
+     * @param array[] $rows
+     * @param array $options
+     * @return array[]
+     * @throws WrongStateException
+     */
+    public function batchInsert($table, array $rows, array $options = [])
+    {
+        $rows = array_map(function ($row) { return $this->encodeRow($row); }, $rows);
 
-		return $result;
-	}
+        $options = $this->parseOptions($options);
 
-	public function update($table, array $row, $options = array()) {
-		$row = $this->encodeId($row);
-		$id = isset($row['_id']) ? $row['_id'] : null;
-		//unset($row['_id']);
-		$options = array_merge(
-			array('safe' => true),
-			$options
-		);
-		if ($options['safe']) {
-			if ($this->checkVersion('1.3.0')) {
-				$options['w'] = $this->writeConcern;
-				unset($options['safe']);
-			} else {
-				$options['safe'] = $this->writeConcern;
-			}
-		}
+        $result = $this->db
+            ->selectCollection($table)
+            ->insertMany($rows, $options);
 
-		$isSafe = isset($options['safe']) || isset($options['w']);
+        if ($result->isAcknowledged()) {
+            $ids = $result->getInsertedIds();
 
-		if (isset($options['where'])) {
-			if (is_array($options['where'])) {
-				$where = $options['where'];
-			}
-			unset($options['where']);
+            if ($result->getInsertedCount() != count($rows)) {
+                throw new WrongStateException('not all objects were inserted, only: ' . implode(', ', $ids));
+            }
 
-		} else if ($id !== null) {
-			$where = array('_id' => $id);
-		}
+            foreach ($rows as &$row) {
+                $row['_id'] = array_shift($ids);
+                $row = $this->decodeRow($row);
+            }
+        }
 
-		if (empty($where)) {
-			throw new NoSQLException('empty "where" clause for update');
-		}
+        return $rows;
+    }
 
-		try {
+    /**
+     * @param $table
+     * @param array $row
+     * @param array $options
+     * @return array
+     * @throws NoSQLException
+     * @throws WrongArgumentException
+     */
+    public function update($table, array $row, $options = [])
+    {
+        $row = $this->encodeRow($row);
 
-			$result =
-				$this
-					->db
-						->selectCollection($table)
-							->updateOne($where, $row, $options);
+        $id = isset($row['_id']) ? $row['_id'] : null;
 
-			if ($isSafe && is_array($result)) {
-				$this->checkResult($result);
-				if (isset($result['upserted'])) {
-					$upserted = $result['upserted'];
-					if (is_array($upserted)) {
-						/**
-						 * in mongo >=2.6 with driver <1.5.3 we would get an array of ids
-						 * @see https://jira.mongodb.org/browse/PHP-1109
-						 */
-						$upserted = array_pop($upserted);
-					}
-					if ($upserted instanceof ObjectID) {
-						$id = $upserted;
-					}
-				}
-			}
+        $options = $this->parseOptions($options);
 
-		} catch (Exception $e) {
-			if ($e instanceof MongoCursorTimeoutException && !$this->isRetrying) {
-				$this->reconnectAndRetry(__FUNCTION__, func_get_args());
-			} else {
-				throw $e;
-			}
-		}
+        if (isset($options['where'])) {
+            if (is_array($options['where'])) {
+                $where = $options['where'];
+            }
+            unset($options['where']);
 
-		$row['_id'] = $id;
-		// return clean row
-		return $this->decodeId($row);
-	}
+        } else if ($id !== null) {
+            $where = ['_id' => $id];
+        }
 
-	protected function checkResult($result) {
-		if (!isset($result['ok']) || $result['ok'] == 0) {
-			$code = isset($result['code']) ? $result['code'] : 0;
-			$message = '';
-			if (isset($result['err'])) {
-				$message .= 'err: ' . $result['err'] . '. ';
-			}
-			if (isset($result['errmsg'])) {
-				$message .= 'errmsg: ' . $result['errmsg'] . '. ';
-			}
-			throw new MongoException($message, $code);
-		}
-	}
+        if (empty($where)) {
+            throw new NoSQLException('empty "where" clause for update');
+        }
 
-	public function deleteOne($table, $key) {
-		return
-			$this
-				->db
-					->selectCollection($table)
-						->deleteOne( array('_id' => $this->makeId($key)) );
-	}
+        $isUpsert = isset($options['upsert']) && $options['upsert'] == true;
 
-	public function deleteList($table, array $keys) {
-		return
-			$this
-				->db
-					->selectCollection($table)
-						->deleteMany( array('_id' => array('$in' => $this->makeIdList($keys))) );
-	}
+        $result = $this->db
+            ->selectCollection($table)
+            ->replaceOne($where, $row, $options);
 
-	public function getPlainList($table) {
-		// quering
-		$cursor =
-			$this
-				->db
-					->selectCollection($table)
-						->find();
-		// recieving objects
-		$rows = array();
-		foreach ($cursor as $row) {
-			$rows[] = $this->decodeId($row);
-		}
-		// return result
-		return $rows;
-	}
+        if ($result->isAcknowledged()) {
+            $countUpdated = $isUpsert
+                ? $result->getUpsertedCount()
+                : $result->getModifiedCount();
+            if ($countUpdated != 1) {
+                throw new WrongArgumentException($countUpdated . ' rows updated: racy or insane inject happened');
+            }
 
-	public function getTotalCount($table) {
-		return
-			$this
-				->db
-					->selectCollection($table)
-                        ->count();
-	}
+            if ($isUpsert) {
+                $row['_id'] = $result->getUpsertedId();
+            }
+        }
 
-	public function getCountByField($table, $field, $value, Criteria $criteria = null) {
-		if( Assert::checkInteger($value) ) {
-			$value = (int)$value;
-		}
-		$options = $this->parseCriteria($criteria);
+        return $this->decodeRow($row);
+    }
 
-		return
-			$this->mongoCount($table, array($field => $value), array('_id'), $options[self::C_ORDER], $options[self::C_LIMIT], $options[self::C_SKIP]);
-	}
+    /**
+     * @return int|string
+     */
+    public function getSafeWriteConcern()
+    {
+        return $this->safeWriteConcern;
+    }
 
-	public function getListByField($table, $field, $value, Criteria $criteria = null) {
-		if( Assert::checkInteger($value) ) {
-			$value = (int)$value;
-		}
-		$options = $this->parseCriteria($criteria);
+    /**
+     * @param int|string $safeWriteConcern
+     * @return $this
+     */
+    public function setSafeWriteConcern($safeWriteConcern)
+    {
+        $this->safeWriteConcern = $safeWriteConcern;
+        return $this;
+    }
 
-		return
-			$this->mongoFind($table, array($field => $value), $options[self::C_FIELDS], $options[self::C_ORDER], $options[self::C_LIMIT], $options[self::C_SKIP]);
-	}
+    /**
+     * @param \MongoDB\Driver\WriteResult $result
+     * @throws DatabaseException
+     */
+    protected function checkResult(\MongoDB\Driver\WriteResult $result)
+    {
+        if ($result->getWriteConcernError() || $result->getWriteErrors()) {
+            throw new DatabaseException(
+                'Mongo writeResult errors: ',
+                print_r([
+                    'writeConcernError' => $result->getWriteConcernError(),
+                    'writeErrors' => $result->getWriteErrors()
+                ], true)
+            );
+        }
+    }
 
-	public function getIdListByField($table, $field, $value, Criteria $criteria = null) {
-		if( Assert::checkInteger($value) ) {
-			$value = (int)$value;
-		}
-		$options = $this->parseCriteria($criteria);
+    /**
+     * @param string $table
+     * @param string $id
+     * @throws WrongStateException
+     */
+    public function deleteOne($table, $id)
+    {
+        $result = $this->db
+            ->selectCollection($table)
+            ->deleteOne(['_id' => $this->makeId($id)]);
 
-		return
-			$this->mongoFind($table, array($field => $value), array('_id'), $options[self::C_ORDER], $options[self::C_LIMIT], $options[self::C_SKIP]);
-	}
+        if ($result->isAcknowledged() && $result->getDeletedCount() != 1) {
+            throw new WrongStateException('no object were dropped');
+        }
+    }
 
-	public function find($table, $query) {
-		return
-			$this->mongoFind($table, $query);
-	}
+    /**
+     * @param string $table
+     * @param string[] $ids
+     * @throws WrongStateException
+     */
+    public function deleteList($table, array $ids)
+    {
+        $result = $this->db
+            ->selectCollection($table)
+            ->deleteMany(['_id' => ['$in' => $this->makeIdList($ids)]]);
 
-	public function findByCriteria(Criteria $criteria) {
-		$options = $this->parseCriteria($criteria);
+        if ($result->isAcknowledged() && $result->getDeletedCount() != count($ids)) {
+            throw new WrongStateException('not all objects were dropped');
+        }
+    }
 
-		if( !isset($options[self::C_TABLE]) ) {
-			throw new NoSQLException('Can not find without table!');
-		}
-//		if( !isset($options[self::C_QUERY]) ) {
-//			throw new NoSQLException('Can not find without query!');
-//		}
+    /**
+     * @param string $table
+     * @return array[]
+     */
+    public function getPlainList($table)
+    {
+        return $this->mongoFind($table);
+    }
 
-		return
-			$this->mongoFind($options[self::C_TABLE], $options[self::C_QUERY], $options[self::C_FIELDS], $options[self::C_ORDER], $options[self::C_LIMIT], $options[self::C_SKIP]);
-	}
+    /**
+     * @param string $table
+     * @return int
+     */
+    public function getTotalCount($table)
+    {
+        return $this->db
+            ->selectCollection($table)
+            ->count();
+    }
 
-	public function countByCriteria(Criteria $criteria) {
-		$options = $this->parseCriteria($criteria);
+    /**
+     * @param string $table
+     * @param string $field
+     * @param mixed  $value
+     * @param Criteria|null $criteria
+     * @return int
+     */
+    public function getCountByField($table, $field, $value, Criteria $criteria = null)
+    {
+        if (Assert::checkInteger($value)) {
+            $value = (int)$value;
+        }
+        $options = $this->parseCriteria($criteria);
 
-		if( !isset($options[self::C_TABLE]) ) {
-			throw new NoSQLException('Can not find without table!');
-		}
-//		if( !isset($options[self::C_QUERY]) ) {
-//			throw new NoSQLException('Can not find without query!');
-//		}
+        return $this->mongoCount(
+            $table, [$field => $value], ['_id'],
+            $options[self::C_ORDER], $options[self::C_LIMIT], $options[self::C_SKIP]
+        );
+    }
 
-		return
-			$this->mongoCount($options[self::C_TABLE], $options[self::C_QUERY], array(), $options[self::C_ORDER], $options[self::C_LIMIT], $options[self::C_SKIP]);
-	}
+    /**
+     * @param string $table
+     * @param string $field
+     * @param mixed  $value
+     * @param Criteria|null $criteria
+     * @return array[]
+     */
+    public function getListByField($table, $field, $value, Criteria $criteria = null)
+    {
+        if (Assert::checkInteger($value)) {
+            $value = (int)$value;
+        }
+        $options = $this->parseCriteria($criteria);
 
-	public function deleteByCriteria(Criteria $criteria, array $options = array('safe' => true)) {
-		$query = $this->parseCriteria($criteria);
+        return $this->mongoFind(
+            $table, [$field => $value], $options[self::C_FIELDS],
+            $options[self::C_ORDER], $options[self::C_LIMIT], $options[self::C_SKIP]
+        );
+    }
 
-		if( !isset($query[self::C_TABLE]) ) {
-			throw new NoSQLException('Can not find without table!');
-		}
+    /**
+     * @param string $table
+     * @param string $field
+     * @param mixed  $value
+     * @param Criteria|null $criteria
+     * @return array[]
+     */
+    public function getIdListByField($table, $field, $value, Criteria $criteria = null)
+    {
+        if (Assert::checkInteger($value)) {
+            $value = (int)$value;
+        }
+        $options = $this->parseCriteria($criteria);
 
-		// extend options
-		$options = array_merge(
-			array('safe' => true),
-			$options
-		);
+        $rows = $this->mongoFind(
+            $table, [$field => $value], ['_id'],
+            $options[self::C_ORDER], $options[self::C_LIMIT], $options[self::C_SKIP]
+        );
 
-		if ($options['safe']) {
-			if ($this->checkVersion('1.3.0')) {
-				$options['w'] = $this->writeConcern;
-				unset($options['safe']);
-			} else {
-				$options['safe'] = $this->writeConcern;
-			}
-		}
+        return array_map(
+            function ($row) { return $row['id']; },
+            $rows
+        );
+    }
 
-		$this->mongoDelete($query[self::C_TABLE], $query[self::C_QUERY], $options);
-	}
+    /**
+     * @param string $table
+     * @param array  $query
+     * @return array[]
+     */
+    public function find($table, $query)
+    {
+        return $this->mongoFind($table, $query);
+    }
+
+    /**
+     * @param Criteria $criteria
+     * @return array[]
+     */
+    public function findByCriteria(Criteria $criteria)
+    {
+        $options = $this->parseCriteria($criteria);
+
+        return $this->mongoFind(
+            $options[self::C_TABLE], $options[self::C_QUERY], $options[self::C_FIELDS],
+            $options[self::C_ORDER], $options[self::C_LIMIT], $options[self::C_SKIP]
+        );
+    }
+
+    /**
+     * @param Criteria $criteria
+     * @return int
+     */
+    public function countByCriteria(Criteria $criteria)
+    {
+        $options = $this->parseCriteria($criteria);
+
+        return $this->mongoCount(
+            $options[self::C_TABLE], $options[self::C_QUERY], [],
+            $options[self::C_ORDER], $options[self::C_LIMIT], $options[self::C_SKIP]
+        );
+    }
+
+
+    public function deleteByCriteria(Criteria $criteria, array $options = [])
+    {
+        $query = $this->parseCriteria($criteria);
+
+        $this->mongoDelete($query[self::C_TABLE], $query[self::C_QUERY], $options);
+    }
 
     /**
      * @param Criteria $criteria
@@ -469,65 +465,83 @@ class MongoBase extends NoSQL {
      * @throws NoSQLException
      * @throws WrongStateException
      */
-	public function makeCursorByCriteria(Criteria $criteria) {
-		$options = $this->parseCriteria($criteria);
+    public function makeCursorByCriteria(Criteria $criteria)
+    {
+        $options = $this->parseCriteria($criteria);
 
-		if (!isset($options[self::C_TABLE])) {
-			throw new NoSQLException('Can not find without table!');
-		}
+        if (!isset($options[self::C_TABLE])) {
+            throw new NoSQLException('Can not find without table!');
+        }
 
-		return $this->db->selectCollection($options[self::C_TABLE])->find(
-		    $options[self::C_QUERY],
+        return $this->db->selectCollection($options[self::C_TABLE])->find(
+            $options[self::C_QUERY],
             $this->mongoMakeFindOptions(
                 $options[self::C_FIELDS],
                 $options[self::C_ORDER],
                 $options[self::C_LIMIT],
                 $options[self::C_SKIP])
         );
-	}
+    }
 
-	protected function mongoFind($table, array $query, array $fields=array(), array $order=null, $limit=null, $skip=null) {
-		// quering
-		$options = $this->mongoMakeFindOptions($fields, $order, $limit, $skip);
-		$cursor = $this->db->selectCollection($table)->find($query, $options);
-		// recieving objects
-		$rows = array();
-		foreach ($cursor as $row) {
-			$rows[] = $this->decodeId($row);
-		}
-		// return result
-		return $rows;
-	}
+    /**
+     * @param string     $table
+     * @param array      $query
+     * @param array      $fields
+     * @param array|null $order
+     * @param null       $limit
+     * @param null       $skip
+     * @return array[]
+     * @throws NoSQLException
+     */
+    protected function mongoFind($table, array $query = [], array $fields = [], array $order = null, $limit = null, $skip = null)
+    {
+        if (!$table) {
+            throw new NoSQLException('Can not find without table!');
+        }
 
-	protected function mongoCount($table, array $query, array $fields=array(), array $order=null, $limit=null, $skip=null) {
-		// quering
         $options = $this->mongoMakeFindOptions($fields, $order, $limit, $skip);
-		// fetch result
-		$count = $this->db->selectCollection($table)->count($query, $options);
-		// check result
-		self::assertCountResult($count);
-		// return count
-		return $count;
-	}
 
-	public static function assertCountResult($count) {
-		if (!Assert::checkInteger($count) || $count < 0) {
-			if (is_array($count)) {
-				$code = isset($count['code']) ? $count['code'] : null;
-				$text = isset($count['errmsg']) ? $count['errmsg'] : json_encode($count);
-				throw new MongoCursorException($text, $code);
-			} else {
-				throw new UnexpectedValueException($count);
-			}
-		}
-	}
+        $cursor = $this->db
+            ->selectCollection($table)
+            ->find($query, $options);
 
-	protected function mongoDelete($table, array $query, array $options) {
-		$res = $this->db->selectCollection($table)->deleteMany($query, $options);
-		if (isset($res['err']) && !is_null($res['err'])) {
-			throw new NoSQLException($res['err']);
-		}
-	}
+        $rows = [];
+        foreach ($cursor as $row) {
+            $rows[] = $this->decodeRow($row);
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param $table
+     * @param array      $query
+     * @param array      $fields
+     * @param null|array $order
+     * @param null|int   $limit
+     * @param null|int   $skip
+     * @return int
+     */
+    protected function mongoCount($table, array $query, array $fields = [], array $order = null, $limit = null, $skip = null)
+    {
+        $options = $this->mongoMakeFindOptions($fields, $order, $limit, $skip);
+
+        return $this->db
+            ->selectCollection($table)
+            ->count($query, $options);
+    }
+
+    /**
+     * @param string $table
+     * @param array  $query
+     * @param array  $options
+     */
+    protected function mongoDelete($table, array $query, array $options)
+    {
+        $this->db
+            ->selectCollection($table)
+            ->deleteMany($query, $options);
+    }
 
     /**
      * @param array $fields
@@ -536,208 +550,170 @@ class MongoBase extends NoSQL {
      * @param int $skip
      * @return array
      */
-	protected function mongoMakeFindOptions(array $fields=array(), array $order=null, $limit=null, $skip=null) {
-	    $options = [];
-	    if ($fields) {
-	        $options['projection'] = $fields;
+    protected function mongoMakeFindOptions(array $fields = [], array $order = null, $limit = null, $skip = null)
+    {
+        $options = [];
+        if ($fields) {
+            $options['projection'] = $fields;
         }
         if ($skip) {
-	        $options['skip'] = $skip;
+            $options['skip'] = $skip;
         }
         if ($limit) {
-	        $options['limit'] = $limit;
+            $options['limit'] = $limit;
         }
         if ($order) {
-	        $options['sort'] = $order;
+            $options['sort'] = $order;
+        }
+
+        return $options;
+    }
+
+    /**
+     * @param array $row
+     * @return array
+     */
+    protected function encodeRow(array $row)
+    {
+        if (isset($row['id'])) {
+            $row['_id'] = $this->makeId($row['id']);
+        }
+        unset($row['id']);
+
+        return $row;
+    }
+
+    /**
+     * @param array $row
+     * @return array
+     */
+    protected function decodeRow($row)
+    {
+        if ($row instanceof \MongoDB\Model\BSONDocument) {
+            $row = $row->getArrayCopy();
+        }
+        array_walk_recursive($row, function (&$item) {
+            if ($item instanceof \MongoDB\Model\BSONDocument) {
+                $item = $item->getArrayCopy();
+            } else if ($item instanceof \MongoDB\Model\BSONArray) {
+                $item = $item->getArrayCopy();
+            } else if ($item instanceof \MongoDB\BSON\ObjectID) {
+                $item = (string)$item;
+            } else if (!is_scalar($item) && !is_array($item) && !is_null($item)) {
+                throw new UnexpectedValueException(var_export($item, true));
+            }
+        });
+
+        $row['id'] = (string)$row['_id'];
+        unset($row['_id']);
+
+        return $row;
+    }
+
+    /**
+     * @param null|string|ObjectID $key
+     * @return ObjectID
+     */
+    protected function makeId($key = null)
+    {
+        return ($key instanceof ObjectID) ? $key : new ObjectID($key);
+    }
+
+    /**
+     * @param string[]|ObjectID[] $keys
+     * @return ObjectID[]
+     */
+    protected function makeIdList(array $keys)
+    {
+        $fields = [];
+        foreach ($keys as $key) {
+            $fields[] = $this->makeId($key);
+        }
+
+        return $fields;
+    }
+
+    /**
+     * Prepare query options using criteria
+     * @param Criteria $criteria
+     * @return array
+     * @throws WrongStateException
+     */
+    protected function parseCriteria(Criteria $criteria = null)
+    {
+        $options = [
+            self::C_TABLE   => null,
+            self::C_FIELDS  => [],
+            self::C_QUERY   => [],
+            self::C_ORDER   => [],
+            self::C_LIMIT   => null,
+            self::C_SKIP    => null,
+        ];
+
+        if (! $criteria) {
+            return $options;
+        }
+
+        if ($criteria->getDao()) {
+            $options[self::C_TABLE] = $criteria->getDao()->getTable();
+        } else {
+            $options[self::C_TABLE] = 'foo_test';
+        }
+
+        foreach ($criteria->getLogic()->getChain() as $expression) {
+            if ($expression instanceof NoSQLExpression) {
+                $options[self::C_FIELDS] = array_merge(
+                    $options[self::C_FIELDS],
+                    $expression->getFieldList()
+                );
+                $options[self::C_QUERY] = array_merge(
+                    $options[self::C_QUERY],
+                    $expression->toMongoQuery()
+                );
+            } else {
+                throw new UnexpectedValueException(print_r($expression, true));
+            }
+        }
+
+        foreach ($criteria->getOrder()->getList() as $orderBy) {
+            $options[self::C_ORDER] = array_merge(
+                $options[self::C_ORDER],
+                [ $orderBy->getFieldName() => $orderBy->isAsc() ? 1 : -1 ]
+            );
+        }
+
+        if ($criteria->getLimit()) {
+            $options[self::C_LIMIT] = $criteria->getLimit();
+        }
+
+        if ($criteria->getOffset()) {
+            $options[self::C_SKIP] = $criteria->getOffset();
+        }
+
+        return $options;
+    }
+
+    /**
+     * @param array $options
+     * @return array
+     */
+    protected function parseOptions(array $options)
+    {
+        if (isset($options['safe'])) {
+            $options['writeConcern'] = $options['safe']
+                ? new \MongoDB\Driver\WriteConcern($this->safeWriteConcern)
+                : new \MongoDB\Driver\WriteConcern(0);
+            unset($options['safe']);
         }
         return $options;
-	}
+    }
 
     /**
-     * @param string $table
-     * @param string $map
-     * @param string $reduce
-     * @param Criteria $criteria
-     * @param int $timeout
-     * @param array $out
-     * @throws NoSQLException
-     * @return array
-     * @throws WrongStateException
+     * Raw access to mongo driver
+     * @return \MongoDB\Client
      */
-	public function mapReduce($table, $map, $reduce, Criteria $criteria=null, $timeout=30, $out=array('inline'=>1)) {
-		$options = $this->parseCriteria($criteria);
-
-		$command = array(
-			'mapreduce'	=> $table,
-			'map'		=> new MongoCode($map),
-			'reduce'	=> new MongoCode($reduce),
-			'out'		=> $out
-		);
-		// обрабатываем критерию
-		if( !empty($options[self::C_QUERY]) ) {
-			$command['query'] = $options[self::C_QUERY];
-		}
-		if( !empty($options[self::C_ORDER]) ) {
-			$command['sort'] = $options[self::C_ORDER];
-		}
-		if( !empty($options[self::C_LIMIT]) ) {
-			$command['limit'] = $options[self::C_LIMIT];
-		}
-
-		$result = $this->db->command($command, array('timeout'=>$timeout*1000));
-
-		// обрабатываем результаты
-		$list = array();
-		if( is_array($result) && isset($result['ok']) && $result['ok']==1 ) {
-			if (isset($result['results'])) {
-				foreach( $result['results'] as $row ) {
-					// prepare id
-					$row['id'] = $row['_id'];
-					unset($row['_id']);
-					// prepare values
-					foreach($row['value'] as $key=>$value) {
-						$row[$key] = is_bool($value) ? (int)$value : $value;
-					}
-					unset($row['value']);
-
-					$list[ $row['id'] ] = $row;
-				}
-			} else {
-				$list = $result;
-			}
-		} else {
-			throw new NoSQLException('Error during map/reduce running');
-		}
-		return $list;
-	}
-
-	public function increment($table, array $fields, Criteria $criteria = null) {
-		return null;
-	}
-
-/// helper functions
-//@{
-	/**
-	 * Encode ID to MongoId
-	 * @param array $row
-	 * @return array
-	 */
-	protected function encodeId(array $row) {
-		if( isset($row['id']) ) {
-			$row['_id'] = $this->makeId($row['id']);
-		}
-		unset($row['id']);
-		return $row;
-	}
-
-	/**
-	 * Decode ID from MongoId to string
-	 * @param array $row
-	 * @return array
-	 */
-	protected function decodeId(array $row) {
-		$row['id'] = (string)$row['_id'];
-		unset($row['_id']);
-		return $row;
-	}
-
-	protected function makeId($key) {
-		return ($key instanceof ObjectID) ? $key : new ObjectID($key);
-	}
-
-	protected function makeIdList(array $keys) {
-		$fields = array();
-		foreach( $keys as $key ) {
-			//$fields[] = array( '_id'=>$this->makeId($key) );
-			$fields[] = $this->makeId($key);
-		}
-		return $fields;
-	}
-
-    /**
-     * Разбираем критерию на параметры запроса к монго
-     * @param Criteria $criteria
-     * @return array
-     * @throws WrongStateException
-     */
-	protected function parseCriteria(Criteria $criteria=null) {
-		$result = array();
-		// парсим табличку
-		if( !is_null($criteria) && $criteria->getDao() ) {
-			$result[self::C_TABLE] = $criteria->getDao()->getTable();
-		} else {
-			$result[self::C_TABLE] = null;
-		}
-		// парсим запросы
-		if( !is_null($criteria) && $criteria->getLogic()->getLogic() ) {
-			$logic = $criteria->getLogic()->getChain();
-			$expression = array_shift($logic);
-			if( $expression instanceof NoSQLExpression ) {
-				$result[self::C_FIELDS] = $expression->getFieldList();
-				$result[self::C_QUERY] = $expression->toMongoQuery();
-			} else {
-				$result[self::C_FIELDS] = array();
-				$result[self::C_QUERY] = array();
-			}
-		} else {
-			$result[self::C_FIELDS] = array();
-			$result[self::C_QUERY] = array();
-		}
-		// парсим сортировку
-		if( !is_null($criteria) && $criteria->getOrder() ) {
-			/** @var $order OrderBy */
-			$order = $criteria->getOrder()->getLast();
-			if( $order instanceof OrderBy ) {
-				$result[self::C_ORDER] = array($order->getFieldName() => $order->isAsc()?1:-1);
-			} else {
-				$result[self::C_ORDER] = null;
-			}
-		} else {
-			$result[self::C_ORDER] = null;
-		}
-		// парсим лимит
-		if( !is_null($criteria) && $criteria->getLimit() ) {
-			$result[self::C_LIMIT] = $criteria->getLimit();
-		} else {
-			$result[self::C_LIMIT] = null;
-		}
-		// парсим сдвиг
-		if( !is_null($criteria) && $criteria->getOffset() ) {
-			$result[self::C_SKIP] = $criteria->getOffset();
-		} else {
-			$result[self::C_SKIP] = null;
-		}
-		// отдаем результат
-		return $result;
-	}
-
-	/**
-	 * Возвращает актуальное имя класса клиента
-	 * @return string
-	 */
-	public static function getClientClass() {
-		try {
-			Assert::classExists('MongoClient');
-			return 'MongoClient';
-		} catch( Exception $e ) {
-			return 'Mongo';
-		}
-	}
-
-	/**
-	 * Проверяет, что драйвер соответствует или новее версии $lowest
-	 * @param string $lowest версия в виде "1.2.3"
-	 * @return boolean
-	 */
-	public static function checkVersion($lowest) {
-		$Mongo = self::getClientClass();
-		try {
-			$version = constant($Mongo . '::VERSION');
-		} catch (BaseException $e) {
-			return false;
-		}
-		return version_compare($version, $lowest, '>=');
-	}
-
-//@}
+    public function getMongoClient()
+    {
+        return $this->link;
+    }
 }

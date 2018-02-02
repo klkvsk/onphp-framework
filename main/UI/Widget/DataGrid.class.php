@@ -369,10 +369,12 @@ class DataGrid extends BaseWidget
             case 'enumeration':
                 return function ($value) use ($fieldId, $property) {
                     $class = $property->getClassName();
-                    if (!class_exists($class, true)) {
-                        throw new ClassNotFoundException;
-                    }
-                    $list = is_subclass_of($class, 'Enum') ? $class::getList() : $class::makeObjectList();
+                    ClassUtils::checkClassExists($class);
+                    /** @var Named[] $list */
+                    $list = is_subclass_of($class, 'Enum')
+                        ? ClassUtils::callStaticMethod("$class::getList")
+                        : ClassUtils::callStaticMethod("$class::makeObjectList");
+
                     $html = '<select name="' . $fieldId . '">';
 					if (!$property->isRequired()) {
 						$html .= '<option value="">' . __('Нет') . '</option>';

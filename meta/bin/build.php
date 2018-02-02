@@ -1,5 +1,6 @@
 #!/usr/bin/php
 <?php
+require __DIR__ . '/../../vendor/autoload.php';
 
 	function help()
 	{
@@ -44,13 +45,6 @@ Possible options:
 		define('ONPHP_META_BUILDERS', ONPHP_META_PATH.'builders'.DIRECTORY_SEPARATOR);
 		define('ONPHP_META_PATTERNS', ONPHP_META_PATH.'patterns'.DIRECTORY_SEPARATOR);
 		define('ONPHP_META_TYPES', ONPHP_META_PATH.'types'.DIRECTORY_SEPARATOR);
-
-		set_include_path(
-			get_include_path().PATH_SEPARATOR
-			.ONPHP_META_BUILDERS.PATH_SEPARATOR
-			.ONPHP_META_PATTERNS.PATH_SEPARATOR
-			.ONPHP_META_TYPES.PATH_SEPARATOR
-		);
 
 		if (!defined('ONPHP_META_DAO_DIR'))
 			define(
@@ -196,18 +190,6 @@ Possible options:
 			}
 		}
 	}
-	
-	// manual includes due to unincluded yet project's config
-	$metaRoot =
-		dirname(dirname($_SERVER['argv'][0]))
-		.DIRECTORY_SEPARATOR
-		.'classes'
-		.DIRECTORY_SEPARATOR;
-
-	include_once $metaRoot.'ConsoleMode.class.php';
-	include_once $metaRoot.'MetaOutput.class.php';
-	include_once $metaRoot.'TextOutput.class.php';
-	include_once $metaRoot.'ColoredTextOutput.class.php';
 
 	if (
 		isset($_SERVER['TERM'])

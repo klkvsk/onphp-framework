@@ -23,7 +23,7 @@
 			
 			if (
 				!ClassUtils::isClassName($scope[$this->name])
-				|| !$this->classExists($scope[$this->name])
+				|| !class_exists($scope[$this->name])
 				|| (
 					$this->ofClassName
 					&& !ClassUtils::isInstanceOf(
@@ -39,35 +39,25 @@
 			
 			return true;
 		}
-		
-		/**
-		 * @throws WrongArgumentException
-		 * @return PrimitiveIdentifier
-		**/
+
+        /**
+         * @param $class
+         * @return PrimitiveClass
+         * @throws ClassNotFoundException
+         */
 		public function of($class)
 		{
 			$className = $this->guessClassName($class);
-			
-			Assert::isTrue(
-				class_exists($className, true)
-				|| interface_exists($className, true),
-				"knows nothing about '{$className}' class"
-			);
-			
+
+			if (!class_exists($className) && !interface_exists($className)) {
+			    throw ClassNotFoundException::create($className);
+            }
+
 			$this->ofClassName = $className;
 			
 			return $this;
 		}
-		
-		private function classExists($name)
-		{
-			try {
-				return class_exists($name, true);
-			} catch (ClassNotFoundException $e) {
-				return false;
-			}
-		}
-		
+
 		private function guessClassName($class)
 		{
 			if (is_string($class))

@@ -349,7 +349,7 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
                     'identifier name mismatch in ' . $class->getName() . ' class'
                 );
 
-                if ($class->getPattern() instanceof NoSqlClassPattern) {
+                if ($class->getPattern() instanceof NosqlClassPattern) {
                     try {
                         NoSqlPool::getByDao($dao);
                     } catch (MissingElementException $e) {
@@ -615,10 +615,8 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
 
         $schema .= '?>';
 
-        BasePattern::dumpFile(
-            ONPHP_META_AUTO_DIR . 'schema.php',
-            Format::indentize($schema)
-        );
+        $schemaFilename = ONPHP_META_AUTO_DIR . 'schema.php';
+        BasePattern::dumpFile($schemaFilename, Format::indentize($schema));
 
         return $this;
     }
@@ -626,9 +624,7 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
     public function buildSchemaChanges()
     {
         $out = $this->getOutput();
-        $out
-            ->newLine()
-            ->infoLine('Suggested DB-schema changes: ');
+
 
         /** @noinspection PhpIncludeInspection */
         require ONPHP_META_AUTO_DIR . 'schema.php';
@@ -636,6 +632,19 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
             $out->errorLine('Could not import schema from schema.php');
             return $this;
         }
+
+        $sqlFilename = PATH_CLASSES.'Auto'.DS.'db_structure.sql';
+        file_put_contents($sqlFilename,
+            $schema->toDialectString(
+                DBPool::me()->getLink()->getDialect()
+            )
+        );
+
+        $out
+            ->newLine()
+            ->infoLine('Generated full SQL to ' . $sqlFilename)
+            ->newLine()
+            ->infoLine('Suggested DB-schema changes: ');
 
         /** @var $class MetaClass */
         foreach ($this->classes as $class) {
@@ -654,7 +663,7 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
                 continue;
             }
 
-            if ($class->getPattern() instanceof NoSqlClassPattern) {
+            if ($class->getPattern() instanceof NosqlClassPattern) {
                 // checking NoSQL-DB
                 try {
                     NoSqlPool::me()->getLink($class->getSourceLink());

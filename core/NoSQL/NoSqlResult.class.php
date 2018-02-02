@@ -41,58 +41,7 @@ class NoSqlResult extends QueryResult {
 	public function getCount() {
 		if ($this->count == null && $this->getMongoCursor()) {
 			$count = $this->getMongoCursor()->count();
-			MongoBase::assertCountResult($count);
-
 			$this->count = $count;
-
-			/* -- плохой вариант, долго считает
-			// пытаемся посчитать количество записей перебором, без использования count()
-			// откидиываем limit и offset
-			$criteria = clone $this->getCriteria();
-			$criteria
-				->setLimit(null)
-				->setOffset(null);
-			// находим в логике NoSQLExpression
-			$expression = null;
-			foreach ($criteria->getLogic()->getChain() as $logic) {
-				if ($logic instanceof NoSQLExpression) {
-					$expression = $logic;
-				}
-			}
-
-			// если нашли - делаем запрос
-			if ($expression instanceof NoSQLExpression) {
-				// берем первое попавшееся в запросе поле и запрашиваем только его
-				foreach ($expression->toMongoQuery() as $field => $condition) {
-					if ($field[0] != '$') {
-						$expression->addField(array($field));
-						break;
-					}
-				}
-
-				$timeStart = microtime(1);
-				$timeMax = Config::me()->getMongoTimeout() / 2;
-				$this->count = 0;
-				$db = NoSqlPool::me()->getByDao($this->getDao());
-				$cursor = $db->makeCursorByCriteria($criteria);
-				// пересчитываем количество выбранных записей
-				foreach ($cursor as $item) {
-					$this->count++;
-
-					// следим за таймаутом, т.к. время запроса к базе не учитывается
-					// в max_execution_time
-					if (microtime(1) - $timeStart > $timeMax) {
-						throw new MongoCursorTimeoutException(
-							'failed to count in ' . $timeMax . ' seconds: '
-							. json_encode($expression->toMongoQuery())
-						);
-					}
-				}
-
-			} else {
-				$this->count = $this->getMongoCursor()->count();
-			}
-			*/
 		}
 		return $this->count;
 	}

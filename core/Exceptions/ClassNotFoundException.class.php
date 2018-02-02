@@ -13,5 +13,29 @@
 	 * @ingroup Exceptions
 	 * @ingroup Module
 	**/
-	final class ClassNotFoundException extends BaseException {/*_*/}
+	final class ClassNotFoundException extends BaseException {
+
+	    /** @var string */
+	    protected $className;
+
+        public static function create($className)
+        {
+            return new static('class not found: ' . $className, 0, null, $className);
+	    }
+
+        public function __construct($message = "", $code = 0, Throwable $previous = null, $className = null)
+        {
+            parent::__construct($message, $code, $previous);
+            $this->className = $className;
+        }
+
+        /**
+         * @return string
+         */
+        public function getClassName()
+        {
+            return $this->className;
+        }
+
+    }
 ?>

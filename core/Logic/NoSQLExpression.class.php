@@ -95,7 +95,7 @@ final class NoSQLExpression implements LogicalObject, MappableObject {
 	 * @return NoSQLExpression
 	 */
 	public function addField($fieldName) {
-		$this->fields = $fieldName;
+		$this->fields[$fieldName] = 1;
 		return $this;
 	}
 //@}

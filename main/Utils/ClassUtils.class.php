@@ -172,22 +172,26 @@
 					$agruments
 				);
 		}
+
+        public static function checkClassExists($className)
+        {
+            if (!class_exists($className)) {
+                throw ClassNotFoundException::create($className);
+            }
+		}
 		
 		public static function checkStaticMethod($methodSignature)
 		{
 			$nameParts = explode('::', $methodSignature, 2);
 			
 			if (count($nameParts) != 2)
-				throw new WrongArgumentException('incorrect method signature');
+				throw new WrongArgumentException('incorrect method signature: '  . $methodSignature);
 			
 			list($className, $methodName) = $nameParts;
-			
-			try {
-				$class = new ReflectionClass($className);
-			} catch (ReflectionException $e) {
-				throw new ClassNotFoundException($className);
-			}
-			
+
+			self::checkClassExists($className);
+            $class = new ReflectionClass($className);
+
 			Assert::isTrue(
 				$class->hasMethod($methodName),
 				"knows nothing about '{$className}::{$methodName}' method"

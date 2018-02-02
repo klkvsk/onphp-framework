@@ -363,7 +363,7 @@ abstract class NoSqlDAO extends StorableDAO
             ->insert(
                 $this->getTable(),
                 $object->toArray(),
-                array('safe' => $safe)
+                [ 'safe' => $safe ]
             );
 
         $object->setId($row['id']);
@@ -390,16 +390,14 @@ abstract class NoSqlDAO extends StorableDAO
 
         $this->runTrigger($object, 'onBeforeSave');
 
-        $row = NoSqlPool::getByDao($this)
+        NoSqlPool::getByDao($this)
             ->update(
                 $this->getTable(),
                 $object->toArray(),
-                array('safe' => $safe)
+                [ 'safe' => $safe ]
             );
 
         $this->runTrigger($object, 'onAfterSave');
-
-        //$object->setId($row['id']);
 
         return $object;
     }
@@ -504,20 +502,6 @@ abstract class NoSqlDAO extends StorableDAO
     {
         return $this->getLink()->getCountByField($this->getTable(), $field, $value, $criteria);
     }
-//@}
-
-/// map/reduce
-//@{
-    public function mapReduce($map, $reduce, Criteria $criteria = null, $timeout = 30, $out = array('inline' => 1))
-    {
-        return $this->getLink()->mapReduce($this->getTable(), $map, $reduce, $criteria, $timeout, $out);
-    }
-
-    public function increment($field, $value, $criteria)
-    {
-        return $this->getLink()->increment($this->getTable(), $field, $value, $criteria);
-    }
-//@}
 
     /**
      * @param $object

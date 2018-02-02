@@ -1,0 +1,22 @@
+{
+    "name": "adonweb/onphp-framework",
+    "authors": [
+        {
+            "name": "klkvsk",
+            "email": "m@klkvsk.ru"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "conflict": {
+        "ext-http": "*"
+    },
+    "bin": [
+        "meta/bin/build.php"
+    ],
+    "autoload": {
+        "classmap": [ "core/", "main/", "meta/" ],
+        "files": [ "bootstrap.php" ]
+    }
+}

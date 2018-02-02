@@ -28,13 +28,13 @@ abstract class NoSQL extends DB {
 	protected $encoding	= null;
 
 	// queries
-	abstract public function selectOne($table, $key);
-	abstract public function selectList($table, array $keys);
+	abstract public function selectOne($table, $id);
+	abstract public function selectList($table, array $ids);
 	abstract public function insert($table, array $row, $options = array());
 	abstract public function batchInsert($table, array $rows);
 	abstract public function update($table, array $row, $options = array());
-	abstract public function deleteOne($table, $key);
-	abstract public function deleteList($table, array $keys);
+	abstract public function deleteOne($table, $id);
+	abstract public function deleteList($table, array $ids);
 
 	// full table queries
 	abstract public function getPlainList($table);
@@ -48,9 +48,6 @@ abstract class NoSQL extends DB {
 	abstract public function findByCriteria(Criteria $criteria);
 	abstract public function countByCriteria(Criteria $criteria);
 	abstract public function makeCursorByCriteria(Criteria $criteria);
-	abstract public function increment($table, array $fields, Criteria $criteria = null);
-
-	abstract public function mapReduce($table, $map, $reduce, Criteria $criteria=null, $timeout=30, $out=array('inline'=>1));
 
 	public function getTableInfo($table) {
 		throw new UnsupportedMethodException('Can not execute getTableInfo in NoSQL');
