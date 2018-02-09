@@ -708,14 +708,11 @@ class MongoBase extends NoSQL {
 			$result[self::C_QUERY] = array();
 		}
 		// парсим сортировку
-		if( !is_null($criteria) && $criteria->getOrder() ) {
-			/** @var $order OrderBy */
-			$order = $criteria->getOrder()->getLast();
-			if( $order instanceof OrderBy ) {
-				$result[self::C_ORDER] = array($order->getFieldName() => $order->isAsc()?1:-1);
-			} else {
-				$result[self::C_ORDER] = null;
-			}
+		if( !is_null($criteria) && $criteria->getOrder()->getCount() ) {
+            $result[self::C_ORDER] = [];
+            foreach ($this->flatOrderChain($criteria->getOrder()) as $order) {
+                $result[self::C_ORDER][$order->getFieldName()] = $order->isAsc() ? 1 : -1;
+            }
 		} else {
 			$result[self::C_ORDER] = null;
 		}
@@ -734,6 +731,18 @@ class MongoBase extends NoSQL {
 		// отдаем результат
 		return $result;
 	}
+
+	private function flatOrderChain(OrderChain $chain) {
+	    $orders = [];
+	    foreach ($chain->getList() as $orderBy) {
+	        if ($orderBy->getField() instanceof OrderChain) {
+                $orders = array_merge($orders, $this->flatOrderChain($orderBy->getField()));
+            } else {
+                $orders []= $orderBy;
+            }
+        }
+        return $orders;
+    }
 
 	/**
 	 * Возвращает актуальное имя класса клиента
