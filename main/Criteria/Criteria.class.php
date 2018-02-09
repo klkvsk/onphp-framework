@@ -469,6 +469,22 @@
 			}
 		}
 
+        public function getCustomColumn($column = null)
+        {
+            $values = [];
+            foreach ($this->getCustomList() as $row) {
+                if ($column) {
+                    if (!array_key_exists($column, $row)) {
+                        throw new MissingElementException('No such key: "'.$column.'" in result set.');
+                    }
+                    $values[] = $row[$column];
+                } else {
+                    $values[] = reset($row);
+                }
+            }
+            return $values;
+		}
+
 		/**
 		 * @return Cursor
 		 */
