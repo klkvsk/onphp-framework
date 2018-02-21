@@ -219,6 +219,11 @@
 			
 			return count($this->list);
 		}
+
+        public function mapList(callable $mapFunction)
+        {
+            return array_map($mapFunction, $this->getList());
+		}
 		
 		/**
 		 * @throws WrongStateException
