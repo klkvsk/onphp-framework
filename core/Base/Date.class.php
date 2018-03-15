@@ -195,7 +195,7 @@ class Date implements Stringable, DialectString, JsonSerializable
 	}
 
 	/**
-	 * @return Date
+	 * @return $this
 	 **/
 	public function spawn($modification = null)
 	{
